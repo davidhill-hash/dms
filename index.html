@@ -1,0 +1,3058 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DMS — Portfolio Operations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+  :root {
+    --ink: #1a1d23; --ink-soft: #2c3038; --ink-muted: #6b7280;
+    --paper: #f7f4ed; --paper-warm: #efeadd; --paper-card: #fdfbf6;
+    --line: #d9d2bf; --line-soft: #e8e2d0;
+    --brass: #a8804a; --brass-dark: #8a6638; --brass-soft: #d4b896;
+    --sage: #6b7e5e; --rust: #b35637; --plum: #6b4570;
+    --surge: #c84a2f; /* surge spaces accent */
+  }
+  html, body { background: var(--paper); color: var(--ink); font-family: 'Inter Tight', system-ui, sans-serif; font-feature-settings: 'ss01', 'cv11'; }
+  .font-display { font-family: 'Fraunces', Georgia, serif; font-optical-sizing: auto; }
+  .font-mono { font-family: 'JetBrains Mono', monospace; }
+  .text-ink { color: var(--ink); } .text-ink-soft { color: var(--ink-soft); } .text-muted { color: var(--ink-muted); }
+  .bg-paper { background: var(--paper); } .bg-paper-warm { background: var(--paper-warm); } .bg-paper-card { background: var(--paper-card); }
+  .bg-ink { background: var(--ink); } .bg-brass { background: var(--brass); }
+  .text-brass { color: var(--brass); } .text-brass-dark { color: var(--brass-dark); }
+  .text-sage { color: var(--sage); } .text-rust { color: var(--rust); } .text-plum { color: var(--plum); }
+  .text-surge { color: var(--surge); }
+  .border-line { border-color: var(--line); } .border-line-soft { border-color: var(--line-soft); }
+  body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image: radial-gradient(rgba(168,128,74,0.04) 1px, transparent 1px), radial-gradient(rgba(26,29,35,0.03) 1px, transparent 1px);
+    background-size: 24px 24px, 16px 16px; background-position: 0 0, 12px 12px; opacity: 0.6; }
+  .relative-content { position: relative; z-index: 1; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 7px 12px; border-radius: 6px; font-size: 13.5px; font-weight: 500; color: var(--ink-soft); cursor: pointer; transition: all 0.15s; letter-spacing: -0.005em; }
+  .nav-item:hover { background: var(--paper-warm); color: var(--ink); }
+  .nav-item.active { background: var(--ink); color: var(--paper); }
+  .nav-section-label { font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-muted); padding: 0 12px; margin-bottom: 6px; }
+  .card { background: var(--paper-card); border: 1px solid var(--line); border-radius: 4px; transition: all 0.2s; }
+  .card-hover:hover { border-color: var(--ink-soft); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,29,35,0.06); }
+  .property-img { aspect-ratio: 4/3; background-size: cover; background-position: center; position: relative; overflow: hidden; background-color: var(--paper-warm); }
+  .property-img::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, rgba(26,29,35,0.4)); }
+  .pill { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; }
+  .pill-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .pill-occupied { background: rgba(107,126,94,0.12); color: var(--sage); } .pill-occupied .pill-dot { background: var(--sage); }
+  .pill-vacant { background: rgba(179,86,55,0.12); color: var(--rust); } .pill-vacant .pill-dot { background: var(--rust); }
+  .pill-notice { background: rgba(168,128,74,0.15); color: var(--brass-dark); } .pill-notice .pill-dot { background: var(--brass); }
+  .pill-overdue { background: var(--rust); color: white; }
+  .pill-due-soon { background: rgba(168,128,74,0.15); color: var(--brass-dark); }
+  .pill-scheduled { background: var(--paper-warm); color: var(--ink-soft); border: 1px solid var(--line); }
+  .pill-done { background: rgba(107,126,94,0.12); color: var(--sage); }
+  .type-tag { display: inline-flex; align-items: center; padding: 2px 7px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; border: 1px solid var(--line); color: var(--ink-soft); background: var(--paper-card); border-radius: 2px; }
+  .btn-primary { background: var(--ink); color: var(--paper); padding: 8px 14px; border-radius: 4px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; cursor: pointer; }
+  .btn-primary:hover { background: var(--ink-soft); }
+  .btn-secondary { background: transparent; color: var(--ink); padding: 7px 13px; border-radius: 4px; border: 1px solid var(--line); font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; cursor: pointer; }
+  .btn-secondary:hover { background: var(--paper-warm); border-color: var(--ink-soft); }
+  .btn-icon { width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; border: 1px solid var(--line); background: var(--paper-card); cursor: pointer; transition: all 0.15s; color: var(--ink-soft); }
+  .btn-icon:hover { background: var(--paper-warm); color: var(--ink); }
+  .btn-danger { background: var(--rust); color: white; padding: 8px 14px; border-radius: 4px; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; cursor: pointer; border: none; }
+  .btn-danger:hover { background: #9a4a30; }
+  .tab { padding: 10px 2px; margin-right: 24px; font-size: 13.5px; font-weight: 500; color: var(--ink-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; letter-spacing: -0.005em; }
+  .tab:hover { color: var(--ink-soft); }
+  .tab.active { color: var(--ink); border-bottom-color: var(--surge); }
+  .kpi-value { font-family: 'Fraunces', serif; font-weight: 400; font-size: 36px; line-height: 1; letter-spacing: -0.02em; }
+  .kpi-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); }
+  .progress-track { height: 4px; background: var(--line-soft); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--ink); border-radius: 2px; transition: width 0.4s ease; }
+  .progress-fill.brass { background: var(--brass); } .progress-fill.sage { background: var(--sage); } .progress-fill.rust { background: var(--rust); }
+  table.data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { text-align: left; font-size: 10.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--paper-warm); }
+  .data-table td { padding: 14px 12px; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; color: var(--ink-soft); }
+  .data-table tr:hover td { background: rgba(168,128,74,0.04); }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr.editable { cursor: pointer; }
+  .code-blur { filter: blur(6px); user-select: none; transition: filter 0.2s; }
+  .code-revealed .code-blur { filter: blur(0); }
+  .search-input { background: var(--paper-card); border: 1px solid var(--line); border-radius: 4px; padding: 7px 12px 7px 34px; font-size: 13px; width: 100%; transition: all 0.15s; }
+  .search-input:focus { outline: none; border-color: var(--ink); background: white; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-up { animation: fadeUp 0.4s ease-out both; }
+  .fade-up-1 { animation-delay: 0.05s; } .fade-up-2 { animation-delay: 0.1s; } .fade-up-3 { animation-delay: 0.15s; } .fade-up-4 { animation-delay: 0.2s; }
+  .mono-block { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--ink); color: var(--paper); padding: 14px 16px; border-radius: 4px; letter-spacing: 0.01em; }
+  .kanban-col { background: var(--paper-warm); border: 1px solid var(--line); border-radius: 4px; padding: 12px; min-height: 400px; }
+  .kanban-card { background: var(--paper-card); border: 1px solid var(--line); border-left: 3px solid var(--ink); border-radius: 3px; padding: 10px 12px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
+  .kanban-card:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(26,29,35,0.06); }
+  .kanban-card.priority-high { border-left-color: var(--rust); }
+  .kanban-card.priority-medium { border-left-color: var(--brass); }
+  .kanban-card.priority-low { border-left-color: var(--sage); }
+  .label-divider { display: flex; align-items: center; gap: 12px; margin: 32px 0 16px; }
+  .label-divider::before, .label-divider::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .label-divider-text { font-size: 10.5px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-muted); }
+  .photo-tile { aspect-ratio: 1; background-size: cover; background-position: center; border-radius: 3px; cursor: pointer; transition: all 0.2s; border: 1px solid var(--line); background-color: var(--paper-warm); }
+  .photo-tile:hover { transform: scale(1.02); border-color: var(--surge); }
+  .cmd-key { font-family: 'JetBrains Mono', monospace; font-size: 10px; background: var(--paper-warm); border: 1px solid var(--line); border-radius: 3px; padding: 1px 5px; color: var(--ink-muted); }
+  .view { display: none; }
+  .view.active { display: block; }
+  .logo-mark { width: 32px; height: 32px; background: var(--ink); color: var(--paper); display: flex; align-items: center; justify-content: center; border-radius: 4px; font-family: 'Fraunces', serif; font-weight: 600; font-size: 14px; letter-spacing: -0.02em; }
+  .surge-badge { background: var(--surge); color: white; font-size: 9px; font-weight: 700; letter-spacing: 0.1em; padding: 1px 5px; border-radius: 2px; text-transform: uppercase; }
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: var(--paper); padding: 12px 18px; border-radius: 4px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px rgba(26,29,35,0.18); z-index: 200; opacity: 0; transform: translateY(8px); transition: all 0.2s; pointer-events: none; max-width: 320px; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .conn-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--sage); box-shadow: 0 0 0 0 rgba(107,126,94,0.6); animation: pulseDot 2s infinite; flex-shrink: 0; }
+  .conn-dot.offline { background: var(--rust); animation: none; }
+  @keyframes pulseDot { 0%,100% { box-shadow: 0 0 0 0 rgba(107,126,94,0.4); } 50% { box-shadow: 0 0 0 4px rgba(107,126,94,0); } }
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(26,29,35,0.5); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; backdrop-filter: blur(2px); }
+  .modal-backdrop.show { display: flex; }
+  .modal-content { background: var(--paper-card); border: 1px solid var(--line); border-radius: 6px; max-width: 520px; width: 100%; padding: 24px; max-height: 90vh; overflow-y: auto; }
+  .input-field { width: 100%; background: white; border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; font-size: 13.5px; font-family: 'Inter Tight', sans-serif; }
+  .input-field:focus { outline: none; border-color: var(--ink); }
+  select.input-field { background: white; }
+  @keyframes rowFlash { 0% { background: rgba(168,128,74,0.18); } 100% { background: transparent; } }
+  .row-flash { animation: rowFlash 1.4s ease-out; }
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 48px 24px; color: var(--ink-muted); text-align: center; }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--paper-warm); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--ink-muted); transition: all 0.2s; }
+  .step-num.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .step-num.done { background: var(--sage); color: white; border-color: var(--sage); }
+  .unit-row { display: grid; grid-template-columns: 90px 1fr 90px 32px; gap: 8px; align-items: center; }
+  .unit-row input, .unit-row select { padding: 6px 10px; font-size: 12.5px; }
+  .unit-remove { background: transparent; border: 1px solid var(--line); border-radius: 4px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; color: var(--ink-muted); cursor: pointer; transition: all 0.15s; }
+  .unit-remove:hover { background: var(--rust); color: white; border-color: var(--rust); }
+  .review-row { display: flex; padding: 4px 0; }
+  .review-label { width: 130px; color: var(--ink-muted); font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; padding-top: 1px; }
+  .review-val { flex: 1; color: var(--ink); font-weight: 500; }
+  .image-drop { position: relative; border: 2px dashed var(--line); border-radius: 6px; padding: 32px 20px; text-align: center; cursor: pointer; background: var(--paper-warm); transition: all 0.15s; min-height: 140px; display: flex; align-items: center; justify-content: center; }
+  .image-drop:hover { border-color: var(--brass); background: rgba(168,128,74,0.04); }
+  .image-drop.drag-over { border-color: var(--brass); background: rgba(168,128,74,0.08); }
+  .image-drop.has-image { padding: 0; border-style: solid; border-color: var(--line); }
+  .hidden-file { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  #image-drop-preview { aspect-ratio: 16/9; background-size: cover; background-position: center; }
+  .archived-banner { background: rgba(168,128,74,0.12); border: 1px solid var(--brass-soft); color: var(--brass-dark); padding: 10px 16px; border-radius: 4px; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  /* searchable combobox */
+  .combo { position: relative; }
+  .combo-input { width: 100%; background: white; border: 1px solid var(--line); border-radius: 4px; padding: 8px 32px 8px 12px; font-size: 13.5px; font-family: 'Inter Tight', sans-serif; cursor: pointer; }
+  .combo-input:focus { outline: none; border-color: var(--ink); }
+  .combo-chevron { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--ink-muted); }
+  .combo-panel { position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1px solid var(--line); border-radius: 4px; box-shadow: 0 8px 24px rgba(26,29,35,0.12); z-index: 1000; max-height: 280px; overflow-y: auto; display: none; }
+  .combo-panel.open { display: block; }
+  .combo-option { padding: 8px 12px; font-size: 13.5px; cursor: pointer; border-bottom: 1px solid var(--line-soft); transition: background 0.1s; }
+  .combo-option:last-child { border-bottom: none; }
+  .combo-option:hover, .combo-option.highlighted { background: var(--paper-warm); }
+  .combo-option.selected { background: rgba(168,128,74,0.08); font-weight: 500; }
+  .combo-option .option-sub { font-size: 11.5px; color: var(--ink-muted); margin-top: 1px; }
+  .combo-option .option-create { color: var(--brass-dark); font-weight: 500; }
+  .combo-option .match { background: rgba(168,128,74,0.25); font-weight: 600; }
+  .combo-empty { padding: 14px 12px; font-size: 12.5px; color: var(--ink-muted); font-style: italic; text-align: center; }
+  .combo-group-label { padding: 10px 12px 4px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); background: var(--paper-warm); border-bottom: 1px solid var(--line-soft); position: sticky; top: 0; }
+</style>
+</head>
+<body class="relative-content">
+
+<div id="toast" class="toast"></div>
+
+<!-- ============ AUTH GATE ============ -->
+<div id="auth-screen" style="display:none">
+  <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; position:relative; z-index:1;">
+    <div style="width:100%; max-width:400px;">
+      <div style="text-align:center; margin-bottom:32px">
+        <div class="logo-mark" style="margin:0 auto 12px; width:44px; height:44px; font-size:18px;">DMS</div>
+        <h1 class="font-display" style="font-size:28px; letter-spacing:-0.02em; line-height:1.1; margin-bottom:6px">Development Management Services</h1>
+        <div class="text-[12px] text-muted uppercase tracking-[0.15em]">Portfolio Operations</div>
+      </div>
+
+      <div class="card" style="padding:28px">
+        <div id="auth-signin-form">
+          <div class="font-display text-[20px] tracking-tight mb-1">Sign in</div>
+          <div class="text-[12.5px] text-muted mb-5">Access requires an invitation.</div>
+          <div class="space-y-3">
+            <div>
+              <div class="kpi-label mb-1.5">Email</div>
+              <input id="auth-email" type="email" class="input-field" placeholder="you@dmsus.net" autocomplete="email">
+            </div>
+            <div>
+              <div class="kpi-label mb-1.5">Password</div>
+              <input id="auth-password" type="password" class="input-field" placeholder="••••••••" autocomplete="current-password">
+            </div>
+          </div>
+          <button id="auth-signin-btn" class="btn-primary mt-5" style="width:100%; justify-content:center; padding:10px" onclick="signIn()">Sign in</button>
+          <div style="text-align:center; margin-top:16px; padding-top:16px; border-top:1px solid var(--line-soft)">
+            <div class="text-[12px] text-muted mb-2">First time signing in?</div>
+            <button class="text-[13px] text-brass-dark font-medium hover:underline" onclick="toggleAuthMode('signup')">Set up your account →</button>
+          </div>
+        </div>
+
+        <div id="auth-signup-form" style="display:none">
+          <div class="font-display text-[20px] tracking-tight mb-1">Set up account</div>
+          <div class="text-[12.5px] text-muted mb-5">Use the email address that received your DMS invitation.</div>
+          <div class="space-y-3">
+            <div>
+              <div class="kpi-label mb-1.5">Invited Email</div>
+              <input id="signup-email" type="email" class="input-field" placeholder="you@dmsus.net" autocomplete="email">
+            </div>
+            <div>
+              <div class="kpi-label mb-1.5">Choose a Password</div>
+              <input id="signup-password" type="password" class="input-field" placeholder="At least 8 characters" autocomplete="new-password">
+            </div>
+          </div>
+          <button id="auth-signup-btn" class="btn-primary mt-5" style="width:100%; justify-content:center; padding:10px" onclick="signUp()">Create account</button>
+          <div style="text-align:center; margin-top:16px; padding-top:16px; border-top:1px solid var(--line-soft)">
+            <button class="text-[13px] text-brass-dark font-medium hover:underline" onclick="toggleAuthMode('signin')">← Back to sign in</button>
+          </div>
+        </div>
+
+        <div id="auth-error" class="mt-3 p-2.5 rounded text-[12.5px]" style="display:none; background:rgba(179,86,55,0.08); border:1px solid rgba(179,86,55,0.3); color:var(--rust)"></div>
+      </div>
+
+      <div class="text-center text-[11px] text-muted mt-5">
+        DMS · Surge Spaces · Howell, NJ
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN APP (shown after sign-in) ============ -->
+<div id="app-shell" style="display:none">
+<div class="flex min-h-screen">
+  <!-- SIDEBAR -->
+  <aside class="w-[232px] bg-paper-warm border-r border-line flex-shrink-0 flex flex-col">
+    <div class="px-5 py-5 border-b border-line">
+      <div class="flex items-center gap-2.5">
+        <div class="logo-mark">DMS</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-display text-[16px] leading-none tracking-tight truncate">Development Mgmt Services</div>
+          <div class="text-[10px] uppercase tracking-[0.15em] text-muted mt-1 flex items-center gap-1.5">
+            <span id="conn-status">Connecting…</span>
+            <span id="conn-dot" class="conn-dot offline"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <nav class="flex-1 px-3 py-4 overflow-y-auto">
+      <div class="mb-5">
+        <div class="nav-item active" data-nav="portfolio" onclick="navTo('portfolio', this)">
+          <i data-lucide="layout-grid" class="w-4 h-4"></i> Portfolio
+        </div>
+        <div class="nav-item" data-nav="tasks" onclick="navTo('tasks', this)">
+          <i data-lucide="check-square" class="w-4 h-4"></i> Tasks
+          <span id="nav-task-count" class="ml-auto text-[10px] font-mono px-1.5 py-0.5 rounded-sm" style="background:var(--rust);color:white;">—</span>
+        </div>
+        <div class="nav-item" data-nav="tenants" onclick="navTo('tenants', this)">
+          <i data-lucide="users" class="w-4 h-4"></i> Tenants
+        </div>
+        <div class="nav-item" data-nav="leases" onclick="navTo('leases', this)">
+          <i data-lucide="file-text" class="w-4 h-4"></i> Leases
+        </div>
+        <div class="nav-item" data-nav="maintenance" onclick="navTo('maintenance', this)">
+          <i data-lucide="wrench" class="w-4 h-4"></i> Maintenance
+        </div>
+      </div>
+      <div class="mb-2"><div class="nav-section-label">Properties</div></div>
+      <div id="property-nav-list" class="mb-5"></div>
+      <div class="mb-2"><div class="nav-section-label flex items-center gap-2">Leasing <span class="surge-badge">Surge</span></div></div>
+      <div class="mb-5">
+        <div class="nav-item"><i data-lucide="megaphone" class="w-4 h-4"></i> Listings</div>
+        <div class="nav-item"><i data-lucide="inbox" class="w-4 h-4"></i> Inquiries</div>
+      </div>
+      <div class="mb-2"><div class="nav-section-label">Workspace</div></div>
+      <div>
+        <div class="nav-item" data-nav="team" onclick="navTo('team', this)"><i data-lucide="users-round" class="w-4 h-4"></i> Team</div>
+        <div class="nav-item"><i data-lucide="bell" class="w-4 h-4"></i> Notifications</div>
+        <div class="nav-item"><i data-lucide="settings" class="w-4 h-4"></i> Settings</div>
+      </div>
+    </nav>
+    <div class="px-3 py-3 border-t border-line">
+      <div class="flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-paper-card cursor-pointer" onclick="toggleUserMenu()">
+        <div id="sidebar-user-avatar" class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0" style="background:var(--brass)">—</div>
+        <div class="flex-1 min-w-0">
+          <div id="sidebar-user-name" class="text-[13px] font-medium leading-tight truncate">…</div>
+          <div id="sidebar-user-role" class="text-[11px] text-muted truncate">…</div>
+        </div>
+        <i data-lucide="log-out" class="w-3.5 h-3.5 text-muted hover:text-rust" onclick="event.stopPropagation(); signOut()"></i>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="flex-1 min-w-0 flex flex-col">
+    <header class="h-14 border-b border-line bg-paper-card flex items-center px-6 gap-4 flex-shrink-0">
+      <div class="relative flex-1 max-w-md">
+        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted"></i>
+        <input class="search-input" placeholder="Search properties, tenants, tasks…">
+        <span class="cmd-key absolute right-3 top-1/2 -translate-y-1/2">⌘K</span>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button class="btn-icon" onclick="openTaskModal()" title="New task"><i data-lucide="plus" class="w-4 h-4"></i></button>
+        <button class="btn-icon" title="Notifications"><i data-lucide="bell" class="w-4 h-4"></i></button>
+        <button class="btn-icon" title="Help"><i data-lucide="help-circle" class="w-4 h-4"></i></button>
+      </div>
+    </header>
+
+    <!-- PORTFOLIO -->
+    <div id="view-portfolio" class="view active flex-1 overflow-y-auto">
+      <div class="px-8 py-8 max-w-[1500px]">
+        <div class="flex items-end justify-between mb-7 fade-up">
+          <div>
+            <div class="text-[11px] uppercase tracking-[0.15em] text-muted mb-2">Portfolio Overview</div>
+            <h1 id="portfolio-greeting" class="font-display text-[40px] leading-none tracking-tight">Good morning.</h1>
+            <p id="portfolio-subtitle" class="text-muted text-[14px] mt-2.5">Loading portfolio…</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn-secondary"><i data-lucide="download" class="w-3.5 h-3.5"></i> Export</button>
+            <button class="btn-primary" onclick="openPropertyModal()"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Property</button>
+          </div>
+        </div>
+
+        <div id="kpi-strip" class="grid grid-cols-5 gap-px bg-line border border-line rounded mb-8 overflow-hidden fade-up fade-up-1"></div>
+
+        <div class="flex items-center justify-between mb-5 fade-up fade-up-2">
+          <div id="type-filters" class="flex items-center gap-2 flex-wrap"></div>
+        </div>
+
+        <div id="property-grid" class="grid grid-cols-3 gap-5 fade-up fade-up-3"></div>
+
+        <div class="grid grid-cols-3 gap-5 mt-10 fade-up fade-up-4">
+          <div class="card p-5 col-span-2">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-display text-[20px] tracking-tight">Recent Activity</h3>
+              <button class="text-[12px] text-brass-dark font-medium hover:underline">View all →</button>
+            </div>
+            <div id="activity-feed" class="space-y-3"></div>
+          </div>
+          <div class="card p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-display text-[20px] tracking-tight">Urgent</h3>
+              <span id="urgent-count" class="pill pill-overdue"><span class="pill-dot" style="background:white"></span>—</span>
+            </div>
+            <div id="urgent-list" class="space-y-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-property" class="view flex-1 overflow-y-auto">
+      <div id="property-detail-content"></div>
+    </div>
+
+    <div id="view-tasks" class="view flex-1 overflow-y-auto">
+      <div class="px-8 py-8 max-w-[1500px]">
+        <div class="flex items-end justify-between mb-6 fade-up">
+          <div>
+            <div class="text-[11px] uppercase tracking-[0.15em] text-muted mb-2">Operations</div>
+            <h1 class="font-display text-[36px] leading-none tracking-tight">Tasks</h1>
+            <p id="tasks-subtitle" class="text-muted text-[14px] mt-2">Loading…</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn-primary" onclick="openTaskModal()"><i data-lucide="plus" class="w-3.5 h-3.5"></i> New Task</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-4 gap-4 fade-up fade-up-1" id="kanban-board"></div>
+      </div>
+    </div>
+
+    <div id="view-tenants" class="view flex-1 overflow-y-auto">
+      <div class="px-8 py-8 max-w-[1500px]">
+        <div class="flex items-end justify-between mb-6 fade-up">
+          <div>
+            <div class="text-[11px] uppercase tracking-[0.15em] text-muted mb-2">Directory</div>
+            <h1 class="font-display text-[36px] leading-none tracking-tight">Tenants</h1>
+            <p id="tenants-page-subtitle" class="text-muted text-[14px] mt-2">Loading…</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn-primary" onclick="openSignLeaseModal()"><i data-lucide="file-signature" class="w-3.5 h-3.5"></i> Sign Lease</button>
+          </div>
+        </div>
+        <div class="card overflow-hidden fade-up fade-up-1">
+          <table class="data-table">
+            <thead>
+              <tr><th>Tenant</th><th>Property</th><th>Unit</th><th>Sqft</th><th>Monthly</th><th>Lease Ends</th><th>Status</th></tr>
+            </thead>
+            <tbody id="tenants-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-leases" class="view flex-1 overflow-y-auto p-8">
+      <div class="max-w-[1500px]">
+        <div class="mb-6 fade-up">
+          <div class="text-[11px] uppercase tracking-[0.15em] text-muted mb-2">Leasing</div>
+          <h1 class="font-display text-[36px] leading-none tracking-tight">Leases</h1>
+          <p id="leases-subtitle" class="text-muted text-[14px] mt-2">Loading…</p>
+        </div>
+        <div class="card overflow-hidden fade-up fade-up-1">
+          <table class="data-table">
+            <thead>
+              <tr><th>Tenant</th><th>Property · Unit</th><th>Start</th><th>End</th><th>Monthly</th><th>Status</th></tr>
+            </thead>
+            <tbody id="leases-table"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-maintenance" class="view flex-1 overflow-y-auto p-8">
+      <h1 class="font-display text-[36px] tracking-tight">Maintenance</h1>
+      <p class="text-muted mt-2">Work orders and vendor management.</p>
+    </div>
+
+    <div id="view-team" class="view flex-1 overflow-y-auto p-8">
+      <div class="max-w-[1500px]">
+        <div class="flex items-end justify-between mb-6 fade-up">
+          <div>
+            <div class="text-[11px] uppercase tracking-[0.15em] text-muted mb-2">Workspace</div>
+            <h1 class="font-display text-[36px] leading-none tracking-tight">Team</h1>
+            <p id="team-subtitle" class="text-muted text-[14px] mt-2">Loading…</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn-primary" onclick="openInviteModal()"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Invite User</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6 fade-up fade-up-1">
+          <div>
+            <h3 class="font-display text-[18px] tracking-tight mb-3">Members</h3>
+            <div class="card overflow-hidden">
+              <table class="data-table">
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th></tr></thead>
+                <tbody id="team-members-table"></tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <h3 class="font-display text-[18px] tracking-tight mb-3">Pending Invitations</h3>
+            <div class="card overflow-hidden">
+              <table class="data-table">
+                <thead><tr><th>Email</th><th>Role</th><th>Invited</th><th></th></tr></thead>
+                <tbody id="team-invites-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</div><!-- /app-shell -->
+
+<!-- ============ MODALS ============ -->
+
+<!-- Task modal -->
+<div id="task-modal" class="modal-backdrop">
+  <div class="modal-content">
+    <div class="flex items-center justify-between mb-4">
+      <h3 id="task-modal-title" class="font-display text-[22px] tracking-tight">New Task</h3>
+      <button class="btn-icon" onclick="closeModal('task-modal')"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <input type="hidden" id="task-edit-id">
+    <div class="space-y-3">
+      <div>
+        <div class="kpi-label mb-1.5">Title</div>
+        <input id="task-title" class="input-field" placeholder="What needs to be done?">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <div class="kpi-label mb-1.5">Property</div>
+          <div id="task-property-combo"></div>
+        </div>
+        <div>
+          <div class="kpi-label mb-1.5">Priority</div>
+          <select id="task-priority" class="input-field">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <div class="kpi-label mb-1.5">Category</div>
+          <input id="task-category" class="input-field" placeholder="e.g. Maintenance">
+        </div>
+        <div>
+          <div class="kpi-label mb-1.5">Due Date</div>
+          <input id="task-due" type="date" class="input-field">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <div class="kpi-label mb-1.5">Assignee</div>
+          <div id="task-assignee-combo"></div>
+        </div>
+        <div>
+          <div class="kpi-label mb-1.5">Status</div>
+          <select id="task-status" class="input-field">
+            <option value="open">Open</option>
+            <option value="in_progress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-between gap-2 mt-5 pt-4 border-t border-line">
+      <button id="task-delete-btn" class="btn-danger" style="display:none" onclick="deleteTask()"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</button>
+      <div class="flex gap-2 ml-auto">
+        <button class="btn-secondary" onclick="closeModal('task-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveTask()"><i data-lucide="check" class="w-3.5 h-3.5"></i> Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tenant modal (directory-only add/edit) -->
+<div id="tenant-modal" class="modal-backdrop">
+  <div class="modal-content">
+    <div class="flex items-center justify-between mb-4">
+      <h3 id="tenant-modal-title" class="font-display text-[22px] tracking-tight">Add Tenant</h3>
+      <button class="btn-icon" onclick="closeModal('tenant-modal')"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div id="tenant-modal-hint" class="text-[12px] text-muted mb-4">Add a tenant to the directory. To put them in a unit, use Sign Lease.</div>
+    <input type="hidden" id="tenant-edit-id">
+    <div class="space-y-3">
+      <div>
+        <div class="kpi-label mb-1.5">Tenant Name</div>
+        <input id="tenant-name" class="input-field" placeholder="Company or person">
+      </div>
+      <div>
+        <div class="kpi-label mb-1.5">Primary Contact</div>
+        <input id="tenant-contact" class="input-field" placeholder="Name of point of contact">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <div class="kpi-label mb-1.5">Email</div>
+          <input id="tenant-email" type="email" class="input-field" placeholder="email@example.com">
+        </div>
+        <div>
+          <div class="kpi-label mb-1.5">Phone</div>
+          <input id="tenant-phone" class="input-field" placeholder="(732) 555-0100">
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-between gap-2 mt-5 pt-4 border-t border-line">
+      <button id="tenant-delete-btn" class="btn-danger" style="display:none" onclick="deleteTenant()"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</button>
+      <div class="flex gap-2 ml-auto">
+        <button class="btn-secondary" onclick="closeModal('tenant-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveTenant()"><i data-lucide="check" class="w-3.5 h-3.5"></i> Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sign Lease modal — the actual "add tenant to unit" flow -->
+<div id="signlease-modal" class="modal-backdrop">
+  <div class="modal-content" style="max-width:560px">
+    <div class="flex items-center justify-between mb-1">
+      <h3 class="font-display text-[22px] tracking-tight">Sign Lease</h3>
+      <button class="btn-icon" onclick="closeModal('signlease-modal')"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div class="text-[12px] text-muted mb-5">Place a tenant in a vacant unit. Creates the lease and marks the unit occupied.</div>
+
+    <div class="space-y-3">
+      <div>
+        <div class="kpi-label mb-1.5">Property &amp; Unit <span class="text-rust">*</span></div>
+        <div id="sl-unit-combo"></div>
+        <div id="sl-unit-info" class="text-[11px] text-muted mt-1"></div>
+      </div>
+
+      <div>
+        <div class="kpi-label mb-1.5">Tenant <span class="text-rust">*</span></div>
+        <div id="sl-tenant-combo"></div>
+        <div class="text-[11px] text-muted mt-1">Type to search existing tenants, or type a new name to create one.</div>
+      </div>
+
+      <!-- new tenant fields appear conditionally -->
+      <div id="sl-new-tenant-fields" class="card p-3 space-y-3" style="background:var(--paper-warm); display:none">
+        <div class="text-[11px] uppercase tracking-[0.1em] font-semibold text-muted">New Tenant Details</div>
+        <div>
+          <div class="kpi-label mb-1.5">Tenant Name <span class="text-rust">*</span></div>
+          <input id="sl-new-name" class="input-field" placeholder="Company or person" readonly style="background:var(--paper-card)">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="kpi-label mb-1.5">Contact</div>
+            <input id="sl-new-contact" class="input-field" placeholder="Point of contact">
+          </div>
+          <div>
+            <div class="kpi-label mb-1.5">Phone</div>
+            <input id="sl-new-phone" class="input-field" placeholder="(732) 555-0100">
+          </div>
+        </div>
+        <div>
+          <div class="kpi-label mb-1.5">Email</div>
+          <input id="sl-new-email" type="email" class="input-field" placeholder="email@example.com">
+        </div>
+      </div>
+
+      <div class="label-divider"><span class="label-divider-text">Lease Terms</span></div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <div class="kpi-label mb-1.5">Start Date <span class="text-rust">*</span></div>
+          <input id="sl-start" type="date" class="input-field">
+        </div>
+        <div>
+          <div class="kpi-label mb-1.5">End Date <span class="text-rust">*</span></div>
+          <input id="sl-end" type="date" class="input-field">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <div class="kpi-label mb-1.5">Monthly Rent ($) <span class="text-rust">*</span></div>
+          <input id="sl-rent" type="number" class="input-field" placeholder="0">
+        </div>
+        <div>
+          <div class="kpi-label mb-1.5">Term Length</div>
+          <select id="sl-term" class="input-field" onchange="applySignLeaseTerm()">
+            <option value="">Custom</option>
+            <option value="12">12 months</option>
+            <option value="24">24 months</option>
+            <option value="36">36 months</option>
+            <option value="60">5 years</option>
+            <option value="120">10 years</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 mt-5 pt-4 border-t border-line">
+      <button class="btn-secondary" onclick="closeModal('signlease-modal')">Cancel</button>
+      <button class="btn-primary" onclick="signLease()"><i data-lucide="file-signature" class="w-3.5 h-3.5"></i> Sign Lease</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lease modal -->
+<div id="lease-modal" class="modal-backdrop">
+  <div class="modal-content">
+    <div class="flex items-center justify-between mb-4">
+      <h3 id="lease-modal-title" class="font-display text-[22px] tracking-tight">Edit Lease</h3>
+      <button class="btn-icon" onclick="closeModal('lease-modal')"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <input type="hidden" id="lease-edit-id">
+    <div class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <div class="kpi-label mb-1.5">Tenant</div>
+          <select id="lease-tenant" class="input-field"></select>
+        </div>
+        <div>
+          <div class="kpi-label mb-1.5">Unit</div>
+          <select id="lease-unit" class="input-field"></select>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <div class="kpi-label mb-1.5">Start Date</div>
+          <input id="lease-start" type="date" class="input-field">
+        </div>
+        <div>
+          <div class="kpi-label mb-1.5">End Date</div>
+          <input id="lease-end" type="date" class="input-field">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <div class="kpi-label mb-1.5">Monthly Rent ($)</div>
+          <input id="lease-rent" type="number" class="input-field" placeholder="0">
+        </div>
+        <div>
+          <div class="kpi-label mb-1.5">Status</div>
+          <select id="lease-status" class="input-field">
+            <option value="active">Active</option>
+            <option value="notice">Notice</option>
+            <option value="expired">Expired</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-5 pt-4 border-t border-line">
+      <button class="btn-secondary" onclick="closeModal('lease-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveLease()"><i data-lucide="check" class="w-3.5 h-3.5"></i> Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Access code modal -->
+<div id="code-modal" class="modal-backdrop">
+  <div class="modal-content">
+    <div class="flex items-center justify-between mb-4">
+      <h3 id="code-modal-title" class="font-display text-[22px] tracking-tight">Edit Access Code</h3>
+      <button class="btn-icon" onclick="closeModal('code-modal')"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <input type="hidden" id="code-edit-id">
+    <input type="hidden" id="code-property-id">
+    <div class="space-y-3">
+      <div>
+        <div class="kpi-label mb-1.5">Label</div>
+        <input id="code-label" class="input-field" placeholder="e.g. Main Gate">
+      </div>
+      <div>
+        <div class="kpi-label mb-1.5">Code</div>
+        <input id="code-value" class="input-field font-mono" placeholder="e.g. #4471*82">
+      </div>
+      <div>
+        <div class="kpi-label mb-1.5">Notes</div>
+        <input id="code-notes" class="input-field" placeholder="Optional context">
+      </div>
+      <div>
+        <div class="kpi-label mb-1.5">Last Rotated</div>
+        <input id="code-rotated" type="date" class="input-field">
+      </div>
+    </div>
+    <div class="flex justify-between gap-2 mt-5 pt-4 border-t border-line">
+      <button id="code-delete-btn" class="btn-danger" style="display:none" onclick="deleteCode()"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</button>
+      <div class="flex gap-2 ml-auto">
+        <button class="btn-secondary" onclick="closeModal('code-modal')">Cancel</button>
+        <button class="btn-primary" onclick="saveCode()"><i data-lucide="check" class="w-3.5 h-3.5"></i> Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Property modal (multi-step) -->
+<div id="property-modal" class="modal-backdrop">
+  <div class="modal-content" style="max-width: 640px;">
+    <div class="flex items-center justify-between mb-1">
+      <h3 id="property-modal-title" class="font-display text-[22px] tracking-tight">Add Property</h3>
+      <button class="btn-icon" onclick="closeModal('property-modal')"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div id="property-modal-subtitle" class="text-[12px] text-muted mb-5">A new property added to the DMS portfolio.</div>
+    <input type="hidden" id="property-edit-id">
+
+    <!-- Step indicator -->
+    <div class="flex items-center gap-2 mb-6 pb-4 border-b border-line-soft">
+      <div id="step-pip-1" class="flex items-center gap-2 flex-1">
+        <div class="step-num active">1</div>
+        <div class="text-[12px] font-medium text-ink">Property</div>
+      </div>
+      <i data-lucide="chevron-right" class="w-3 h-3 text-muted"></i>
+      <div id="step-pip-2" class="flex items-center gap-2 flex-1">
+        <div class="step-num">2</div>
+        <div class="text-[12px] font-medium text-muted">Units</div>
+      </div>
+      <i data-lucide="chevron-right" class="w-3 h-3 text-muted"></i>
+      <div id="step-pip-3" class="flex items-center gap-2 flex-1">
+        <div class="step-num">3</div>
+        <div class="text-[12px] font-medium text-muted">Image & Review</div>
+      </div>
+    </div>
+
+    <!-- STEP 1: PROPERTY DETAILS -->
+    <div id="property-step-1" class="property-step">
+      <div class="space-y-3">
+        <div>
+          <div class="kpi-label mb-1.5">Property Name <span class="text-rust">*</span></div>
+          <input id="prop-name" class="input-field" placeholder="e.g. Howell Industrial Center" oninput="updatePropSlug()">
+          <div class="text-[11px] text-muted mt-1">URL slug: <span id="prop-slug-preview" class="font-mono">—</span></div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="kpi-label mb-1.5">Property Type <span class="text-rust">*</span></div>
+            <select id="prop-type" class="input-field">
+              <option value="Warehouse">Warehouse</option>
+              <option value="Flex / Industrial">Flex / Industrial</option>
+              <option value="Flex / Office">Flex / Office</option>
+              <option value="Class B Office">Class B Office</option>
+              <option value="Class A Office">Class A Office</option>
+              <option value="Retail Strip">Retail Strip</option>
+              <option value="Mixed-Use Retail">Mixed-Use Retail</option>
+              <option value="Self-Storage">Self-Storage</option>
+              <option value="Charter School">Charter School</option>
+              <option value="Assisted Living">Assisted Living</option>
+              <option value="Medical Office">Medical Office</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div>
+            <div class="kpi-label mb-1.5">Year Built</div>
+            <input id="prop-year" type="number" class="input-field" placeholder="2010" min="1800" max="2100">
+          </div>
+        </div>
+        <div>
+          <div class="kpi-label mb-1.5">Street Address <span class="text-rust">*</span></div>
+          <input id="prop-address" class="input-field" placeholder="123 Main Street">
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-1">
+            <div class="kpi-label mb-1.5">City <span class="text-rust">*</span></div>
+            <input id="prop-city" class="input-field" placeholder="Howell">
+          </div>
+          <div>
+            <div class="kpi-label mb-1.5">State</div>
+            <input id="prop-state" class="input-field" value="NJ" maxlength="2">
+          </div>
+          <div>
+            <div class="kpi-label mb-1.5">Zip</div>
+            <input id="prop-zip" class="input-field" placeholder="07731">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="kpi-label mb-1.5">Total Square Feet</div>
+            <input id="prop-sqft" type="number" class="input-field" placeholder="50000">
+          </div>
+          <div>
+            <div class="kpi-label mb-1.5">Lot Acres</div>
+            <input id="prop-acres" type="number" step="0.01" class="input-field" placeholder="2.5">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="kpi-label mb-1.5">Owner Entity</div>
+            <input id="prop-owner" class="input-field" placeholder="Property Name Holdings LLC">
+          </div>
+          <div>
+            <div class="kpi-label mb-1.5">Acquired Date</div>
+            <input id="prop-acquired" type="date" class="input-field">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="kpi-label mb-1.5">Parcel ID</div>
+            <input id="prop-parcel" class="input-field" placeholder="14-00088-0042">
+          </div>
+          <div>
+            <div class="kpi-label mb-1.5">Zoning</div>
+            <input id="prop-zoning" class="input-field" placeholder="C-2 Commercial">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: UNITS -->
+    <div id="property-step-2" class="property-step" style="display:none">
+      <div class="mb-4 p-3 rounded text-[12.5px]" style="background:rgba(168,128,74,0.08); border:1px solid var(--brass-soft); color:var(--ink-soft)">
+        <div class="font-medium mb-1">How is this property divided?</div>
+        <div class="text-muted">For single-tenant properties (charter school, assisted living, single-tenant warehouse) leave the default one unit. For multi-tenant properties, add a row per unit.</div>
+      </div>
+
+      <div class="flex items-center justify-between mb-3">
+        <div class="text-[13px] font-medium">Units</div>
+        <button class="btn-secondary" onclick="addUnitRow()"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Unit</button>
+      </div>
+
+      <div id="unit-rows" class="space-y-2 max-h-[380px] overflow-y-auto pr-1"></div>
+
+      <div class="mt-4 flex gap-2">
+        <button class="btn-secondary text-[12px]" onclick="addBulkUnits(5)">+ 5 units</button>
+        <button class="btn-secondary text-[12px]" onclick="addBulkUnits(10)">+ 10 units</button>
+        <button class="btn-secondary text-[12px]" onclick="addBulkUnits(25)">+ 25 units</button>
+      </div>
+
+      <div class="mt-4 pt-3 border-t border-line-soft flex justify-between text-[12px] text-muted">
+        <span>Unit count: <span id="unit-count" class="font-mono text-ink-soft">1</span></span>
+        <span>Total unit sqft: <span id="unit-total-sqft" class="font-mono text-ink-soft">0</span></span>
+      </div>
+    </div>
+
+    <!-- STEP 3: IMAGE & REVIEW -->
+    <div id="property-step-3" class="property-step" style="display:none">
+      <div class="mb-4">
+        <div class="kpi-label mb-1.5">Hero Image</div>
+        <div id="image-drop-zone" class="image-drop">
+          <input id="prop-image-file" type="file" accept="image/jpeg,image/png,image/webp,image/gif" class="hidden-file" onchange="handleImageFile(this.files[0])">
+          <div id="image-drop-empty">
+            <i data-lucide="image-up" class="w-8 h-8 mb-2" style="color:var(--ink-muted)"></i>
+            <div class="text-[13px] font-medium text-ink-soft">Click to upload, or drag &amp; drop</div>
+            <div class="text-[11px] text-muted mt-1">JPG, PNG, WebP, or GIF · up to 10MB</div>
+          </div>
+          <div id="image-drop-preview" class="property-img rounded" style="background-image:url('');display:none;width:100%"></div>
+          <div id="image-drop-uploading" style="display:none" class="text-[12px] text-muted flex items-center gap-2 justify-center py-4">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Uploading…
+          </div>
+        </div>
+        <button id="image-clear-btn" class="text-[11px] text-rust hover:underline mt-2" style="display:none" onclick="clearImage()">Remove image</button>
+      </div>
+
+      <div class="label-divider"><span class="label-divider-text">Review</span></div>
+
+      <div id="property-review" class="space-y-2 text-[13px]"></div>
+    </div>
+
+    <div class="flex justify-between gap-2 mt-5 pt-4 border-t border-line">
+      <div class="flex gap-2">
+        <button id="prop-prev-btn" class="btn-secondary" onclick="propertyStepPrev()" style="display:none"><i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Back</button>
+        <button id="prop-archive-btn" class="btn-danger" onclick="archiveProperty()" style="display:none"><i data-lucide="archive" class="w-3.5 h-3.5"></i> Archive</button>
+      </div>
+      <div class="flex gap-2 ml-auto">
+        <button class="btn-secondary" onclick="closeModal('property-modal')">Cancel</button>
+        <button id="prop-next-btn" class="btn-primary" onclick="propertyStepNext()">Next <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></button>
+        <button id="prop-create-btn" class="btn-primary" onclick="saveProperty()" style="display:none"><i data-lucide="check" class="w-3.5 h-3.5"></i> Create Property</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Invite User modal -->
+<div id="invite-modal" class="modal-backdrop">
+  <div class="modal-content">
+    <div class="flex items-center justify-between mb-1">
+      <h3 class="font-display text-[22px] tracking-tight">Invite to DMS</h3>
+      <button class="btn-icon" onclick="closeModal('invite-modal')"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div class="text-[12px] text-muted mb-5">They'll be able to sign up with this email address.</div>
+    <div class="space-y-3">
+      <div>
+        <div class="kpi-label mb-1.5">Email <span class="text-rust">*</span></div>
+        <input id="invite-email" type="email" class="input-field" placeholder="newperson@dmsus.net">
+      </div>
+      <div>
+        <div class="kpi-label mb-1.5">Full Name</div>
+        <input id="invite-name" class="input-field" placeholder="First Last">
+      </div>
+      <div>
+        <div class="kpi-label mb-1.5">Role</div>
+        <select id="invite-role" class="input-field">
+          <option value="admin" selected>Admin</option>
+          <option value="manager">Manager</option>
+          <option value="viewer">Viewer</option>
+        </select>
+        <div class="text-[11px] text-muted mt-1">Role permissions can be refined later. For now all roles have full access.</div>
+      </div>
+    </div>
+    <div class="flex justify-end gap-2 mt-5 pt-4 border-t border-line">
+      <button class="btn-secondary" onclick="closeModal('invite-modal')">Cancel</button>
+      <button class="btn-primary" onclick="sendInvite()"><i data-lucide="check" class="w-3.5 h-3.5"></i> Send Invitation</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============== SUPABASE ==============
+const SUPABASE_URL = 'https://wgrlbozwnfhkomwhltpy.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_i7CgJ23ZS0naBMUA6zOGRg_gFSI2z2j';
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  realtime: { params: { eventsPerSecond: 10 } }
+});
+
+// ============== STATE ==============
+const state = {
+  properties: [], units: [], leases: [], tenants: [], tasks: [], activity: [],
+  contacts: [], documents: [], photos: [], accessCodes: [], workOrders: [],
+  currentPropertyId: null,
+  currentPropertyTab: 'overview',
+  typeFilter: 'all',
+  propNavExpanded: false,
+  lastSelfMutation: new Map(), // to suppress own-edit notifications
+};
+
+// ============== UTILITIES ==============
+function toast(msg, opts = {}) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  if (opts.tone === 'remote') t.style.background = 'var(--brass-dark)';
+  else if (opts.tone === 'error') t.style.background = 'var(--rust)';
+  else t.style.background = 'var(--ink)';
+  t.classList.add('show');
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+function daysFromNow(dateStr) {
+  if (!dateStr) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(dateStr); d.setHours(0,0,0,0);
+  return Math.round((d - today) / 86400000);
+}
+function fmtDue(dateStr) {
+  const d = daysFromNow(dateStr);
+  if (d === null) return '—';
+  if (d < 0) return `${Math.abs(d)} day${Math.abs(d)===1?'':'s'} late`;
+  if (d === 0) return 'Today';
+  if (d === 1) return 'Tomorrow';
+  if (d <= 7) return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][new Date(dateStr).getDay()];
+  return new Date(dateStr).toLocaleDateString('en-US', { month:'short', day:'numeric' });
+}
+function fmtMoney(n) { if (n == null) return '—'; return '$' + Number(n).toLocaleString(); }
+function shortAddress(p) { return `${p.city}, ${p.state}`; }
+function flashElement(selector) {
+  setTimeout(() => {
+    const el = document.querySelector(selector);
+    if (el) { el.classList.remove('row-flash'); void el.offsetWidth; el.classList.add('row-flash'); }
+  }, 50);
+}
+function markSelfEdit(table, id) {
+  state.lastSelfMutation.set(`${table}:${id}`, Date.now());
+}
+function isSelfEdit(table, id) {
+  const key = `${table}:${id}`;
+  const ts = state.lastSelfMutation.get(key);
+  return ts && (Date.now() - ts < 2500);
+}
+
+// ============== SEARCHABLE COMBOBOX ==============
+// Reusable searchable dropdown. Replaces a <select> with type-to-filter UX.
+// Mount with: Combo.mount(elementId, { options, value, onChange, placeholder, allowCreate, groupBy })
+// options: [{ value, label, sub?, group? }] OR for grouped: pass groupBy fn
+const Combo = (() => {
+  const instances = new Map();
+
+  function mount(hostId, config) {
+    const host = document.getElementById(hostId);
+    if (!host) return;
+    // wipe & rebuild
+    host.innerHTML = '';
+    host.classList.add('combo');
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'combo-input';
+    input.setAttribute('autocomplete', 'off');
+    input.placeholder = config.placeholder || 'Type to search…';
+
+    const chevron = document.createElement('i');
+    chevron.setAttribute('data-lucide', 'chevron-down');
+    chevron.className = 'combo-chevron w-4 h-4';
+
+    const panel = document.createElement('div');
+    panel.className = 'combo-panel';
+
+    host.appendChild(input);
+    host.appendChild(chevron);
+    host.appendChild(panel);
+
+    const state = {
+      options: config.options || [],
+      value: config.value ?? null,
+      query: '',
+      highlighted: 0,
+      open: false,
+      allowCreate: config.allowCreate || false,
+      createLabel: config.createLabel || 'Create new',
+      onChange: config.onChange || (() => {}),
+      onCreate: config.onCreate || null,
+      groupBy: config.groupBy || null,
+    };
+
+    function setValue(val) {
+      state.value = val;
+      const opt = state.options.find(o => o.value === val);
+      input.value = opt ? opt.label : '';
+      close();
+      state.onChange(val);
+    }
+
+    function open_() {
+      state.open = true;
+      panel.classList.add('open');
+      state.query = '';
+      input.select();
+      render();
+    }
+    function close() {
+      state.open = false;
+      panel.classList.remove('open');
+      const opt = state.options.find(o => o.value === state.value);
+      input.value = opt ? opt.label : '';
+    }
+
+    function fuzzy(s, q) {
+      if (!q) return true;
+      return s.toLowerCase().includes(q.toLowerCase());
+    }
+
+    function highlight(text, q) {
+      if (!q) return text;
+      const idx = text.toLowerCase().indexOf(q.toLowerCase());
+      if (idx === -1) return text;
+      return text.slice(0, idx) + '<span class="match">' + text.slice(idx, idx + q.length) + '</span>' + text.slice(idx + q.length);
+    }
+
+    function render() {
+      const q = state.query;
+      let matches = state.options.filter(o => fuzzy(o.label, q) || (o.sub && fuzzy(o.sub, q)));
+      // create option
+      const items = [];
+      if (state.allowCreate && q && !state.options.find(o => o.label.toLowerCase() === q.toLowerCase())) {
+        items.push({ value: '__create__', label: `${state.createLabel}: "${q}"`, isCreate: true });
+      }
+
+      if (state.groupBy) {
+        const groups = {};
+        matches.forEach(m => {
+          const g = m.group || 'Other';
+          (groups[g] = groups[g] || []).push(m);
+        });
+        let html = '';
+        items.forEach((it, i) => {
+          html += `<div class="combo-option option-create ${i === state.highlighted ? 'highlighted' : ''}" data-idx="${i}">${it.label}</div>`;
+        });
+        let idx = items.length;
+        Object.keys(groups).forEach(g => {
+          html += `<div class="combo-group-label">${g}</div>`;
+          groups[g].forEach(m => {
+            const isSel = m.value === state.value;
+            const isHl = idx === state.highlighted;
+            html += `<div class="combo-option ${isSel ? 'selected' : ''} ${isHl ? 'highlighted' : ''}" data-idx="${idx}" data-value="${m.value}">
+              <div>${highlight(m.label, q)}</div>
+              ${m.sub ? `<div class="option-sub">${highlight(m.sub, q)}</div>` : ''}
+            </div>`;
+            items.push(m);
+            idx++;
+          });
+        });
+        if (items.length === 0) html = '<div class="combo-empty">No matches</div>';
+        panel.innerHTML = html;
+      } else {
+        items.push(...matches);
+        if (items.length === 0) {
+          panel.innerHTML = '<div class="combo-empty">No matches</div>';
+        } else {
+          panel.innerHTML = items.map((it, i) => {
+            const isSel = it.value === state.value;
+            const isHl = i === state.highlighted;
+            const cls = ['combo-option'];
+            if (isSel) cls.push('selected');
+            if (isHl) cls.push('highlighted');
+            if (it.isCreate) cls.push('option-create');
+            return `<div class="${cls.join(' ')}" data-idx="${i}" data-value="${it.value}">
+              <div>${highlight(it.label, q)}</div>
+              ${it.sub ? `<div class="option-sub">${highlight(it.sub, q)}</div>` : ''}
+            </div>`;
+          }).join('');
+        }
+      }
+
+      // wire option clicks
+      panel.querySelectorAll('.combo-option').forEach(el => {
+        el.addEventListener('mousedown', e => {
+          e.preventDefault();
+          const idx = parseInt(el.dataset.idx);
+          const chosen = items[idx];
+          if (!chosen) return;
+          if (chosen.isCreate && state.onCreate) {
+            const newVal = state.onCreate(state.query);
+            if (newVal) setValue(newVal);
+            return;
+          }
+          setValue(chosen.value);
+        });
+        el.addEventListener('mouseenter', () => {
+          state.highlighted = parseInt(el.dataset.idx);
+          panel.querySelectorAll('.combo-option').forEach((e, i) => e.classList.toggle('highlighted', i === state.highlighted));
+        });
+      });
+
+      // ensure highlighted item is in view
+      const hl = panel.querySelector('.combo-option.highlighted');
+      if (hl) hl.scrollIntoView({ block: 'nearest' });
+
+      lucide.createIcons();
+    }
+
+    input.addEventListener('focus', open_);
+    input.addEventListener('click', open_);
+    input.addEventListener('input', e => {
+      state.query = e.target.value;
+      state.highlighted = 0;
+      if (!state.open) open_();
+      render();
+    });
+    input.addEventListener('keydown', e => {
+      if (!state.open && (e.key === 'ArrowDown' || e.key === 'Enter')) { open_(); e.preventDefault(); return; }
+      if (!state.open) return;
+      const items = panel.querySelectorAll('.combo-option');
+      if (e.key === 'ArrowDown') {
+        state.highlighted = Math.min(state.highlighted + 1, items.length - 1);
+        render();
+        e.preventDefault();
+      } else if (e.key === 'ArrowUp') {
+        state.highlighted = Math.max(state.highlighted - 1, 0);
+        render();
+        e.preventDefault();
+      } else if (e.key === 'Enter') {
+        const hl = items[state.highlighted];
+        if (hl) hl.dispatchEvent(new MouseEvent('mousedown'));
+        e.preventDefault();
+      } else if (e.key === 'Escape') {
+        close();
+        input.blur();
+      }
+    });
+    input.addEventListener('blur', () => {
+      setTimeout(() => { if (state.open) close(); }, 100);
+    });
+
+    // initial render
+    const initOpt = state.options.find(o => o.value === state.value);
+    if (initOpt) input.value = initOpt.label;
+
+    const api = {
+      setOptions(opts) { state.options = opts; if (state.open) render(); },
+      setValue,
+      getValue() { return state.value; },
+      clear() { state.value = null; input.value = ''; },
+      focus() { input.focus(); },
+    };
+    instances.set(hostId, api);
+    return api;
+  }
+
+  function get(hostId) { return instances.get(hostId); }
+
+  return { mount, get };
+})();
+
+// ============== LOAD ==============
+async function loadAllData() {
+  try {
+    const [props, units, leases, tenants, tasks, act, contacts, docs, photos, codes, wos] = await Promise.all([
+      sb.from('properties').select('*').is('archived_at', null).order('name'),
+      sb.from('units').select('*'),
+      sb.from('leases').select('*'),
+      sb.from('tenants').select('*'),
+      sb.from('tasks').select('*').order('due_date', { ascending: true, nullsFirst: false }),
+      sb.from('activity_log').select('*').order('created_at', { ascending: false }).limit(8),
+      sb.from('contacts').select('*'),
+      sb.from('documents').select('*'),
+      sb.from('photos').select('*'),
+      sb.from('access_codes').select('*'),
+      sb.from('work_orders').select('*').order('reported_date', { ascending: false }),
+    ]);
+    state.properties = props.data || [];
+    state.units = units.data || [];
+    state.leases = leases.data || [];
+    state.tenants = tenants.data || [];
+    state.tasks = tasks.data || [];
+    state.activity = act.data || [];
+    state.contacts = contacts.data || [];
+    state.documents = docs.data || [];
+    state.photos = photos.data || [];
+    state.accessCodes = codes.data || [];
+    state.workOrders = wos.data || [];
+  } catch (e) {
+    console.error('Load error:', e);
+    toast('Could not connect to database', { tone: 'error' });
+  }
+}
+
+// ============== REALTIME ==============
+function setupRealtime() {
+  const channel = sb.channel('dms-portfolio')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'properties' }, (p) => handleRealtimeChange('properties', p))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (p) => handleRealtimeChange('tasks', p))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'tenants' }, (p) => handleRealtimeChange('tenants', p))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'leases' }, (p) => handleRealtimeChange('leases', p))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'units' }, (p) => handleRealtimeChange('units', p))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'access_codes' }, (p) => handleRealtimeChange('accessCodes', p))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'activity_log' }, (p) => handleRealtimeChange('activity', p))
+    .subscribe((status) => {
+      const dot = document.getElementById('conn-dot');
+      const label = document.getElementById('conn-status');
+      if (status === 'SUBSCRIBED') {
+        dot.classList.remove('offline');
+        label.textContent = 'Live · synced';
+      } else if (status === 'CHANNEL_ERROR' || status === 'CLOSED' || status === 'TIMED_OUT') {
+        dot.classList.add('offline');
+        label.textContent = 'Reconnecting…';
+      }
+    });
+}
+
+function handleRealtimeChange(stateKey, payload) {
+  const { eventType, new: newRec, old: oldRec } = payload;
+  const table = payload.table;
+  const id = (newRec && newRec.id) || (oldRec && oldRec.id);
+  const isOwn = isSelfEdit(table, id);
+
+  // Special handling for properties: filter out archived
+  if (stateKey === 'properties') {
+    let arr = state.properties;
+    if (eventType === 'INSERT') {
+      if (!newRec.archived_at) arr.unshift(newRec);
+    } else if (eventType === 'UPDATE') {
+      const idx = arr.findIndex(x => x.id === newRec.id);
+      if (newRec.archived_at) {
+        // archived → remove from active list
+        if (idx >= 0) arr.splice(idx, 1);
+      } else {
+        // active
+        if (idx >= 0) arr[idx] = newRec;
+        else arr.unshift(newRec);
+      }
+    } else if (eventType === 'DELETE') {
+      state.properties = arr.filter(x => x.id !== oldRec.id);
+    }
+    rerenderAll();
+    if (!isOwn) {
+      const action = eventType === 'INSERT' ? 'added' : (newRec && newRec.archived_at) ? 'archived' : eventType === 'UPDATE' ? 'updated' : 'removed';
+      toast(`Property ${action} elsewhere`, { tone: 'remote' });
+    }
+    return;
+  }
+
+  // mutate state in place
+  let arr = state[stateKey];
+  if (eventType === 'INSERT') arr.unshift(newRec);
+  else if (eventType === 'UPDATE') {
+    const idx = arr.findIndex(x => x.id === newRec.id);
+    if (idx >= 0) arr[idx] = newRec; else arr.unshift(newRec);
+  } else if (eventType === 'DELETE') {
+    state[stateKey] = arr.filter(x => x.id !== oldRec.id);
+  }
+
+  // re-render the affected surfaces
+  rerenderAll();
+
+  if (!isOwn) {
+    const labels = { properties:'Property', tasks:'Task', tenants:'Tenant', leases:'Lease', units:'Unit', accessCodes:'Access code', activity:'Activity' };
+    const action = eventType === 'INSERT' ? 'added' : eventType === 'UPDATE' ? 'updated' : 'removed';
+    toast(`${labels[stateKey] || stateKey} ${action} elsewhere`, { tone: 'remote' });
+  }
+}
+
+function rerenderAll() {
+  renderKpiStrip();
+  renderPropertyGrid();
+  renderPropertyNav();
+  renderActivity();
+  renderUrgent();
+  renderTenantsTable();
+  renderLeasesTable();
+  renderKanban();
+  if (typeof renderTeam === 'function' && state.profiles) renderTeam();
+  if (state.currentPropertyId) {
+    renderPropertyDetail(state.currentPropertyId, state.currentPropertyTab);
+  }
+}
+
+// ============== DERIVED ==============
+function propertyStats(propertyId) {
+  const units = state.units.filter(u => u.property_id === propertyId);
+  const leases = state.leases.filter(l => l.property_id === propertyId && l.status === 'active');
+  const occupied = units.filter(u => u.status === 'occupied').length;
+  const monthlyRent = leases.reduce((s, l) => s + Number(l.monthly_rent || 0), 0);
+  const openTasks = state.tasks.filter(t => t.property_id === propertyId && t.status !== 'done').length;
+  const urgentTasks = state.tasks.filter(t => t.property_id === propertyId && t.status !== 'done' && (t.priority === 'high' || daysFromNow(t.due_date) < 0)).length;
+  const occupancy = units.length ? Math.round((occupied / units.length) * 100) : 0;
+  return { unitCount: units.length, occupied, vacant: units.length - occupied, monthlyRent, openTasks, urgentTasks, occupancy };
+}
+function portfolioKpis() {
+  const propCount = state.properties.length;
+  const totalSqft = state.properties.reduce((s, p) => s + (p.sqft || 0), 0);
+  const totalUnits = state.units.length;
+  const occupiedUnits = state.units.filter(u => u.status === 'occupied').length;
+  const occupancy = totalUnits ? (occupiedUnits / totalUnits * 100) : 0;
+  const tenantCount = state.leases.filter(l => l.status === 'active').length;
+  const openTasks = state.tasks.filter(t => t.status !== 'done').length;
+  const overdue = state.tasks.filter(t => t.status !== 'done' && daysFromNow(t.due_date) < 0).length;
+  const dueThisWeek = state.tasks.filter(t => t.status !== 'done' && daysFromNow(t.due_date) >= 0 && daysFromNow(t.due_date) <= 7).length;
+  const today = new Date();
+  const ninety = new Date(); ninety.setDate(today.getDate() + 90);
+  const expiringLeases = state.leases.filter(l => l.status === 'active' && l.end_date && new Date(l.end_date) <= ninety && new Date(l.end_date) >= today).length;
+  return { propCount, totalSqft, occupancy, tenantCount, openTasks, overdue, dueThisWeek, expiringLeases };
+}
+
+// ============== RENDERERS ==============
+function renderKpiStrip() {
+  const k = portfolioKpis();
+  const firstName = (state.currentProfile?.full_name || '').split(' ')[0];
+  const hour = new Date().getHours();
+  const tod = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const greetingEl = document.getElementById('portfolio-greeting');
+  if (greetingEl) greetingEl.textContent = firstName ? `${tod}, ${firstName}.` : `${tod}.`;
+  document.getElementById('portfolio-subtitle').textContent =
+    `${k.propCount} properties · ${k.tenantCount} active leases · ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}`;
+  document.getElementById('kpi-strip').innerHTML = `
+    <div class="bg-paper-card p-5">
+      <div class="kpi-label mb-2">Properties</div>
+      <div class="kpi-value">${k.propCount}</div>
+      <div class="text-[11px] text-muted mt-2 flex items-center gap-1"><i data-lucide="building-2" class="w-3 h-3"></i>${(k.totalSqft/1000000).toFixed(2)}M sqft total</div>
+    </div>
+    <div class="bg-paper-card p-5">
+      <div class="kpi-label mb-2">Occupancy</div>
+      <div class="kpi-value">${k.occupancy.toFixed(0)}<span class="text-[20px] text-muted">.${Math.round((k.occupancy*10)%10)}%</span></div>
+      <div class="progress-track mt-3.5"><div class="progress-fill sage" style="width:${k.occupancy}%"></div></div>
+    </div>
+    <div class="bg-paper-card p-5">
+      <div class="kpi-label mb-2">Active Leases</div>
+      <div class="kpi-value">${k.tenantCount}</div>
+      <div class="text-[11px] text-muted mt-2">Across portfolio</div>
+    </div>
+    <div class="bg-paper-card p-5">
+      <div class="kpi-label mb-2">Open Tasks</div>
+      <div class="kpi-value">${k.openTasks}</div>
+      <div class="text-[11px] mt-2 flex items-center gap-1"><span class="text-rust font-medium">${k.overdue} overdue</span><span class="text-muted">· ${k.dueThisWeek} this week</span></div>
+    </div>
+    <div class="bg-paper-card p-5">
+      <div class="kpi-label mb-2">Expiring Leases</div>
+      <div class="kpi-value">${k.expiringLeases}</div>
+      <div class="text-[11px] text-muted mt-2">Next 90 days</div>
+    </div>`;
+  document.getElementById('nav-task-count').textContent = k.overdue;
+  lucide.createIcons();
+}
+
+function renderTypeFilters() {
+  const counts = {};
+  state.properties.forEach(p => { counts[p.property_type] = (counts[p.property_type]||0)+1; });
+  const types = Object.keys(counts).sort();
+  document.getElementById('type-filters').innerHTML = `
+    <button class="btn-secondary ${state.typeFilter==='all'?'text-ink':''}" ${state.typeFilter==='all'?'style="background:var(--paper-warm);border-color:var(--ink-soft);"':''} onclick="setTypeFilter('all')">All Types <span class="text-muted ml-1">${state.properties.length}</span></button>
+    ${types.map(t => `<button class="btn-secondary ${state.typeFilter===t?'text-ink':''}" ${state.typeFilter===t?'style="background:var(--paper-warm);border-color:var(--ink-soft);"':''} onclick="setTypeFilter('${t.replace(/'/g,"\\'")}')">${t} <span class="text-muted ml-1">${counts[t]}</span></button>`).join('')}`;
+}
+function setTypeFilter(t) { state.typeFilter = t; renderTypeFilters(); renderPropertyGrid(); }
+
+function renderPropertyGrid() {
+  const grid = document.getElementById('property-grid');
+  const filtered = state.typeFilter === 'all' ? state.properties : state.properties.filter(p => p.property_type === state.typeFilter);
+  grid.innerHTML = filtered.map(p => {
+    const s = propertyStats(p.id);
+    return `
+      <div class="card card-hover overflow-hidden cursor-pointer" onclick="showProperty('${p.id}')">
+        <div class="property-img" style="background-image:url('${p.hero_image_url || ''}')">
+          <div class="absolute top-3 left-3 right-3 flex justify-between items-start z-10">
+            <span class="type-tag" style="background:rgba(253,251,246,0.92);backdrop-filter:blur(4px)">${p.property_type}</span>
+            ${s.urgentTasks > 0 ? `<span class="pill pill-overdue"><i data-lucide="alert-circle" class="w-3 h-3"></i>${s.urgentTasks}</span>` : ''}
+          </div>
+          <div class="absolute bottom-3 left-3 right-3 z-10">
+            <div class="font-display text-white text-[22px] tracking-tight leading-tight">${p.name}</div>
+          </div>
+        </div>
+        <div class="p-4">
+          <div class="text-[12px] text-muted mb-3 flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i>${shortAddress(p)}</div>
+          <div class="grid grid-cols-3 gap-3 mb-3">
+            <div><div class="kpi-label text-[9.5px]">Sqft</div><div class="font-display text-[18px] mt-0.5">${(p.sqft/1000).toFixed(0)}K</div></div>
+            <div><div class="kpi-label text-[9.5px]">Units</div><div class="font-display text-[18px] mt-0.5">${s.unitCount}</div></div>
+            <div><div class="kpi-label text-[9.5px]">Occupancy</div><div class="font-display text-[18px] mt-0.5">${s.occupancy}<span class="text-muted text-[13px]">%</span></div></div>
+          </div>
+          <div class="progress-track mb-3"><div class="progress-fill ${s.occupancy >= 95 ? 'sage' : s.occupancy >= 80 ? 'brass' : 'rust'}" style="width:${s.occupancy}%"></div></div>
+          <div class="flex items-center justify-between pt-3 border-t border-line-soft">
+            <div class="text-[11.5px] text-muted"><span class="font-mono text-ink-soft font-medium">$${(s.monthlyRent/1000).toFixed(1)}K</span> / mo</div>
+            <div class="text-[11.5px] text-muted flex items-center gap-1"><i data-lucide="check-square" class="w-3 h-3"></i>${s.openTasks} open</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+function renderPropertyNav() {
+  const list = document.getElementById('property-nav-list');
+  const props = state.properties;
+  const limit = state.propNavExpanded ? props.length : 5;
+  const shown = props.slice(0, limit);
+  const remaining = props.length - limit;
+
+  let html = shown.map(p => `
+    <div class="nav-item" data-prop-nav="${p.id}" onclick="showProperty('${p.id}')">
+      <i data-lucide="building" class="w-3.5 h-3.5"></i>
+      <span class="truncate">${p.name}</span>
+    </div>`).join('');
+
+  if (remaining > 0) {
+    html += `<div class="nav-item text-muted text-[12px]" onclick="togglePropNav()" style="padding-left:30px">+ ${remaining} more</div>`;
+  } else if (state.propNavExpanded && props.length > 5) {
+    html += `<div class="nav-item text-muted text-[12px]" onclick="togglePropNav()" style="padding-left:30px">Show fewer</div>`;
+  }
+
+  list.innerHTML = html;
+  // re-apply active state if we're currently viewing a property
+  if (state.currentPropertyId) {
+    const el = list.querySelector(`[data-prop-nav="${state.currentPropertyId}"]`);
+    if (el) el.classList.add('active');
+  }
+  lucide.createIcons();
+}
+
+function togglePropNav() {
+  state.propNavExpanded = !state.propNavExpanded;
+  renderPropertyNav();
+}
+
+function renderActivity() {
+  const feed = document.getElementById('activity-feed');
+  const fmtTime = (ts) => {
+    const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return `${Math.round(diff/60)}m ago`;
+    if (diff < 86400) return `${Math.round(diff/3600)}h ago`;
+    if (diff < 86400*2) return 'yesterday';
+    return `${Math.round(diff/86400)}d ago`;
+  };
+  feed.innerHTML = state.activity.slice(0, 6).map(a => {
+    const tone = {rust:'var(--rust)',sage:'var(--sage)',brass:'var(--brass)',ink:'var(--ink-soft)'}[a.tone] || 'var(--ink-soft)';
+    return `
+      <div class="flex gap-3 py-2 border-b border-line-soft last:border-0">
+        <div class="w-7 h-7 rounded-full border border-line flex items-center justify-center flex-shrink-0" style="background:var(--paper-warm);color:${tone}">
+          <i data-lucide="${a.icon || 'circle'}" class="w-3.5 h-3.5"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <div class="text-[13px] leading-snug text-ink-soft">${a.message}</div>
+          <div class="text-[11px] text-muted mt-1">${a.actor || 'system'} · ${fmtTime(a.created_at)}</div>
+        </div>
+      </div>`;
+  }).join('');
+  lucide.createIcons();
+}
+
+function renderUrgent() {
+  const urgent = state.tasks
+    .filter(t => t.status !== 'done' && (daysFromNow(t.due_date) < 0 || t.priority === 'high'))
+    .sort((a,b) => (daysFromNow(a.due_date)||0) - (daysFromNow(b.due_date)||0))
+    .slice(0, 5);
+  document.getElementById('urgent-count').innerHTML = `<span class="pill-dot" style="background:white"></span>${urgent.length}`;
+  document.getElementById('urgent-list').innerHTML = urgent.map(t => {
+    const p = state.properties.find(x => x.id === t.property_id);
+    const days = daysFromNow(t.due_date);
+    const color = days < 0 ? 'var(--rust)' : 'var(--brass)';
+    const label = days < 0 ? `${Math.abs(days)} day${Math.abs(days)===1?'':'s'} overdue` : fmtDue(t.due_date);
+    return `
+      <div class="border-l-2 pl-3 py-1 cursor-pointer hover:bg-paper-warm rounded-r" style="border-color:${color}" onclick="openTaskModal('${t.id}')">
+        <div class="text-[13px] font-medium">${t.title}</div>
+        <div class="text-[11.5px] text-muted">${p ? p.name : 'Portfolio'} · ${label}</div>
+      </div>`;
+  }).join('') || '<div class="text-[12px] text-muted italic">Nothing urgent. Nice.</div>';
+}
+
+function renderTenantsTable() {
+  const rows = state.units.map(u => {
+    const lease = state.leases.find(l => l.unit_id === u.id && l.status === 'active');
+    const tenant = lease ? state.tenants.find(t => t.id === lease.tenant_id) : null;
+    const prop = state.properties.find(p => p.id === u.property_id);
+    let status = u.status;
+    if (lease && lease.end_date && daysFromNow(lease.end_date) <= 90 && daysFromNow(lease.end_date) > 0) status = 'notice';
+    return { unitId: u.id, tenantId: tenant?.id, leaseId: lease?.id, name: tenant?.name || 'VACANT', property: prop?.name || '', unit: u.unit_number, sqft: u.sqft, monthly: lease?.monthly_rent || 0, ends: lease?.end_date ? new Date(lease.end_date).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '—', status };
+  }).sort((a,b) => a.property.localeCompare(b.property));
+
+  document.getElementById('tenants-page-subtitle').textContent = `${rows.filter(r => r.status !== 'vacant').length} active across ${state.properties.length} properties`;
+
+  document.getElementById('tenants-table').innerHTML = rows.map(t => {
+    const statusPill = t.status === 'occupied' ? '<span class="pill pill-occupied"><span class="pill-dot"></span>Occupied</span>'
+      : t.status === 'vacant' ? '<span class="pill pill-vacant"><span class="pill-dot"></span>Vacant</span>'
+      : '<span class="pill pill-notice"><span class="pill-dot"></span>Notice</span>';
+    const clickAction = t.tenantId ? `openTenantModal('${t.tenantId}')` : `openSignLeaseModal('${t.unitId}')`;
+    return `<tr class="editable" onclick="${clickAction}">
+      <td class="font-medium text-ink">${t.name === 'VACANT' ? '<span class="text-muted italic">— vacant — <span class="text-brass-dark not-italic ml-1">sign lease →</span></span>' : t.name}</td>
+      <td>${t.property}</td>
+      <td class="font-mono text-[12px]">${t.unit}</td>
+      <td class="font-mono text-[12px]">${t.sqft?.toLocaleString() || '—'}</td>
+      <td class="font-mono text-[12px]">${t.monthly == 0 ? '—' : fmtMoney(t.monthly)}</td>
+      <td>${t.ends}</td>
+      <td>${statusPill}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderLeasesTable() {
+  const rows = state.leases.map(l => {
+    const tenant = state.tenants.find(t => t.id === l.tenant_id);
+    const unit = state.units.find(u => u.id === l.unit_id);
+    const prop = state.properties.find(p => p.id === l.property_id);
+    return { id: l.id, tenant: tenant?.name || '—', loc: `${prop?.name || ''} · ${unit?.unit_number || ''}`, start: l.start_date, end: l.end_date, monthly: l.monthly_rent, status: l.status };
+  }).sort((a,b) => (a.end || '9999').localeCompare(b.end || '9999'));
+
+  document.getElementById('leases-subtitle').textContent = `${state.leases.length} leases · ${state.leases.filter(l=>l.status==='active').length} active`;
+
+  document.getElementById('leases-table').innerHTML = rows.map(r => {
+    const days = daysFromNow(r.end);
+    const endColor = days !== null && days < 90 && days >= 0 ? 'text-brass-dark font-medium' : '';
+    const statusPill = r.status === 'active' ? '<span class="pill pill-occupied"><span class="pill-dot"></span>Active</span>'
+      : r.status === 'notice' ? '<span class="pill pill-notice"><span class="pill-dot"></span>Notice</span>'
+      : r.status === 'expired' ? '<span class="pill pill-vacant"><span class="pill-dot"></span>Expired</span>'
+      : '<span class="pill pill-scheduled"><span class="pill-dot"></span>'+r.status+'</span>';
+    return `<tr class="editable" onclick="openLeaseModal('${r.id}')">
+      <td class="font-medium text-ink">${r.tenant}</td>
+      <td>${r.loc}</td>
+      <td>${r.start ? new Date(r.start).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '—'}</td>
+      <td class="${endColor}">${r.end ? new Date(r.end).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '—'}</td>
+      <td class="font-mono text-[12px]">${fmtMoney(r.monthly)}</td>
+      <td>${statusPill}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderKanban() {
+  const open = state.tasks.filter(t => t.status !== 'done');
+  const done = state.tasks.filter(t => t.status === 'done');
+  const bucket = { overdue: [], today: [], week: [], later: [] };
+  open.forEach(t => {
+    const d = daysFromNow(t.due_date);
+    if (d == null) bucket.later.push(t);
+    else if (d < 0) bucket.overdue.push(t);
+    else if (d === 0) bucket.today.push(t);
+    else if (d <= 7) bucket.week.push(t);
+    else bucket.later.push(t);
+  });
+  document.getElementById('tasks-subtitle').textContent = `${open.length} open · ${bucket.overdue.length} overdue · ${done.length} completed`;
+  const cols = [
+    { key: 'overdue', label: 'Overdue', items: bucket.overdue, accent: 'var(--rust)' },
+    { key: 'today', label: 'Due Today', items: bucket.today, accent: 'var(--brass)' },
+    { key: 'week', label: 'This Week', items: bucket.week, accent: 'var(--ink-soft)' },
+    { key: 'later', label: 'Upcoming', items: bucket.later, accent: 'var(--sage)' },
+  ];
+  document.getElementById('kanban-board').innerHTML = cols.map(col => `
+    <div>
+      <div class="flex items-center justify-between mb-3 px-1">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full" style="background:${col.accent}"></span>
+          <span class="text-[11px] font-semibold uppercase tracking-[0.1em]">${col.label}</span>
+          <span class="text-[11px] text-muted font-mono">${col.items.length}</span>
+        </div>
+      </div>
+      <div class="kanban-col">
+        ${col.items.length === 0 ? '<div class="text-[12px] text-muted italic px-2 py-4 text-center">No tasks</div>' :
+          col.items.map(t => {
+            const p = state.properties.find(x => x.id === t.property_id);
+            const dueText = col.key === 'overdue' ? `${Math.abs(daysFromNow(t.due_date))}d late` : fmtDue(t.due_date);
+            return `
+              <div class="kanban-card priority-${t.priority}" onclick="openTaskModal('${t.id}')">
+                <div class="task-title text-[13px] font-medium leading-snug mb-2">${t.title}</div>
+                <div class="text-[11.5px] text-muted mb-2.5">${p ? p.name : 'Portfolio'}</div>
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] ${col.key === 'overdue' ? 'text-rust font-semibold' : 'text-muted'}">${dueText}</span>
+                  <div class="w-5 h-5 rounded-full text-white text-[9px] font-semibold flex items-center justify-center" style="background:var(--brass)">${t.assignee_initials || '—'}</div>
+                </div>
+              </div>`;
+          }).join('')
+        }
+      </div>
+    </div>`).join('');
+}
+
+// ============== PROPERTY DETAIL ==============
+function renderPropertyDetail(id, activeTab = 'overview') {
+  const p = state.properties.find(x => x.id === id);
+  if (!p) return;
+  state.currentPropertyId = id;
+  state.currentPropertyTab = activeTab;
+  const s = propertyStats(id);
+  const units = state.units.filter(u => u.property_id === id);
+
+  document.getElementById('property-detail-content').innerHTML = `
+    <div class="relative h-[280px] overflow-hidden border-b border-line">
+      <div style="background-image:url('${p.hero_image_url || ''}');background-size:cover;background-position:center;position:absolute;inset:0;background-color:var(--paper-warm)"></div>
+      <div class="absolute inset-0" style="background:linear-gradient(180deg, rgba(26,29,35,0.3) 0%, rgba(26,29,35,0.75) 100%)"></div>
+      <div class="relative z-10 h-full flex flex-col justify-between px-8 py-6">
+        <div class="flex items-center gap-2 text-[12px] text-white/75">
+          <span class="cursor-pointer hover:text-white" onclick="navTo('portfolio')">Portfolio</span>
+          <i data-lucide="chevron-right" class="w-3 h-3"></i>
+          <span>${p.property_type}</span>
+          <i data-lucide="chevron-right" class="w-3 h-3"></i>
+          <span class="text-white">${p.name}</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-3 mb-2">
+            <span class="type-tag" style="background:rgba(253,251,246,0.95);">${p.property_type}</span>
+            <span class="pill ${s.occupancy >= 95 ? 'pill-occupied' : 'pill-notice'}"><span class="pill-dot"></span>${s.occupancy}% Occupied</span>
+            ${s.vacant > 0 ? `<span class="surge-badge">Surge · ${s.vacant} listing${s.vacant>1?'s':''}</span>` : ''}
+          </div>
+          <h1 class="font-display text-white text-[44px] leading-none tracking-tight">${p.name}</h1>
+          <div class="text-white/80 text-[14px] mt-2.5 flex items-center gap-1.5">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>${p.address_line}, ${p.city}, ${p.state} ${p.zip}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="px-8 py-6 border-b border-line bg-paper-card">
+      <div class="flex items-start justify-between gap-6 max-w-[1500px]">
+        <div class="grid grid-cols-6 gap-8 flex-1">
+          <div><div class="kpi-label mb-1.5">Square Feet</div><div class="font-display text-[26px] leading-none">${p.sqft?.toLocaleString() || '—'}</div></div>
+          <div><div class="kpi-label mb-1.5">Units</div><div class="font-display text-[26px] leading-none">${s.unitCount} <span class="text-muted text-[14px]">total</span></div></div>
+          <div><div class="kpi-label mb-1.5">Occupied</div><div class="font-display text-[26px] leading-none">${s.occupied}</div></div>
+          <div><div class="kpi-label mb-1.5">Vacant</div><div class="font-display text-[26px] leading-none ${s.vacant > 0 ? 'text-rust' : ''}">${s.vacant}</div></div>
+          <div><div class="kpi-label mb-1.5">Monthly Rent</div><div class="font-display text-[26px] leading-none">$${(s.monthlyRent/1000).toFixed(0)}K</div></div>
+          <div><div class="kpi-label mb-1.5">Year Built</div><div class="font-display text-[26px] leading-none">${p.year_built || '—'}</div></div>
+        </div>
+        <button class="btn-secondary flex-shrink-0" onclick="openPropertyModal('${p.id}')"><i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit Property</button>
+      </div>
+    </div>
+
+    <div class="px-8 border-b border-line bg-paper-card sticky top-0 z-20">
+      <div class="flex">
+        ${['overview','tasks','units','access','docs','photos','maintenance'].map(t => `
+          <div class="tab ${t===activeTab?'active':''}" onclick="switchPropertyTab('${t}')">
+            ${t==='overview'?'Overview':t==='tasks'?'Tasks':t==='units'?'Units &amp; Tenants':t==='access'?'Access &amp; Codes':t==='docs'?'Documents':t==='photos'?'Photos':'Maintenance'}
+            ${t==='tasks'?`<span class="text-muted ml-1 font-mono text-[11px]">${s.openTasks}</span>`:''}
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="px-8 py-7 max-w-[1500px]">
+      ${activeTab === 'overview' ? renderTabOverview(p, s) :
+        activeTab === 'tasks' ? renderTabTasks(p) :
+        activeTab === 'units' ? renderTabUnits(p, units) :
+        activeTab === 'access' ? renderTabAccess(p) :
+        activeTab === 'docs' ? renderTabDocs(p) :
+        activeTab === 'photos' ? renderTabPhotos(p) :
+        renderTabMaintenance(p)}
+    </div>
+  `;
+  lucide.createIcons();
+}
+
+function switchPropertyTab(name) {
+  renderPropertyDetail(state.currentPropertyId, name);
+}
+
+function renderTabOverview(p, s) {
+  const propContacts = state.contacts.filter(c => c.property_id === p.id);
+  const propActivity = state.activity.filter(a => a.property_id === p.id).slice(0, 4);
+  return `
+    <div class="grid grid-cols-3 gap-6">
+      <div class="col-span-2 space-y-6">
+        <div class="card p-6">
+          <h3 class="font-display text-[22px] tracking-tight mb-4">Property Details</h3>
+          <div class="grid grid-cols-2 gap-x-8 gap-y-4">
+            <div><div class="kpi-label mb-1">Parcel ID</div><div class="font-mono text-[13px]">${p.parcel_id || '—'}</div></div>
+            <div><div class="kpi-label mb-1">Zoning</div><div class="text-[14px]">${p.zoning || '—'}</div></div>
+            <div><div class="kpi-label mb-1">Owner Entity</div><div class="text-[14px]">${p.owner_entity || '—'}</div></div>
+            <div><div class="kpi-label mb-1">Acquired</div><div class="text-[14px]">${p.acquired_date ? new Date(p.acquired_date).toLocaleDateString('en-US',{month:'long',year:'numeric'}) : '—'}</div></div>
+            <div><div class="kpi-label mb-1">Lot Size</div><div class="text-[14px]">${p.lot_acres ? p.lot_acres + ' acres' : '—'}</div></div>
+            <div><div class="kpi-label mb-1">Tax Class</div><div class="text-[14px]">${p.tax_class || '—'}</div></div>
+          </div>
+        </div>
+        ${propActivity.length ? `
+        <div class="card p-6">
+          <h3 class="font-display text-[22px] tracking-tight mb-4">Recent Activity</h3>
+          <div class="space-y-3">
+            ${propActivity.map(a => {
+              const tone = {rust:'var(--rust)',sage:'var(--sage)',brass:'var(--brass)',ink:'var(--ink-soft)'}[a.tone] || 'var(--ink-soft)';
+              return `<div class="flex gap-3 py-2 border-b border-line-soft last:border-0">
+                <div class="w-7 h-7 rounded-full border border-line flex items-center justify-center flex-shrink-0" style="background:var(--paper-warm);color:${tone}"><i data-lucide="${a.icon || 'circle'}" class="w-3.5 h-3.5"></i></div>
+                <div class="flex-1"><div class="text-[13px] leading-snug text-ink-soft">${a.message}</div><div class="text-[11px] text-muted mt-1">${a.actor || 'system'}</div></div>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>` : ''}
+      </div>
+      <div class="space-y-4">
+        ${propContacts.length ? `
+        <div class="card p-5">
+          <h4 class="kpi-label mb-3">Key Contacts</h4>
+          <div class="space-y-3">
+            ${propContacts.slice(0,6).map(c => `
+              <div class="flex items-start gap-2.5">
+                <i data-lucide="user" class="w-4 h-4 text-muted mt-0.5"></i>
+                <div class="flex-1">
+                  <div class="text-[13px] font-medium">${c.name}</div>
+                  <div class="text-[11px] text-muted">${c.role || ''}${c.phone ? ' · ' + c.phone : ''}</div>
+                </div>
+              </div>`).join('')}
+          </div>
+        </div>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderTabTasks(p) {
+  const tasks = state.tasks.filter(t => t.property_id === p.id);
+  return `
+    <div class="flex justify-end mb-4">
+      <button class="btn-primary" onclick="openTaskModal(null, '${p.id}')"><i data-lucide="plus" class="w-3.5 h-3.5"></i> New Task</button>
+    </div>
+    <div class="card overflow-hidden">
+      <table class="data-table">
+        <thead><tr><th></th><th>Task</th><th>Category</th><th>Due</th><th>Assignee</th><th>Priority</th></tr></thead>
+        <tbody>
+          ${tasks.length === 0 ? '<tr><td colspan="6" class="text-center text-muted py-8 italic">No tasks for this property</td></tr>' :
+            tasks.map(t => {
+              const days = daysFromNow(t.due_date);
+              const dueClass = t.status === 'done' ? 'text-muted line-through' : days < 0 ? 'text-rust font-medium' : '';
+              const pill = t.status === 'done' ? '<span class="pill pill-done"><span class="pill-dot"></span>Done</span>' :
+                t.priority === 'high' && days < 0 ? '<span class="pill pill-overdue"><span class="pill-dot" style="background:white"></span>High</span>' :
+                t.priority === 'high' ? '<span class="pill pill-due-soon"><span class="pill-dot"></span>High</span>' :
+                '<span class="pill pill-scheduled"><span class="pill-dot"></span>'+t.priority.charAt(0).toUpperCase()+t.priority.slice(1)+'</span>';
+              return `<tr class="editable" onclick="openTaskModal('${t.id}')">
+                <td><input type="checkbox" ${t.status==='done'?'checked':''} onclick="event.stopPropagation(); toggleTaskDone('${t.id}', '${t.status}')"></td>
+                <td class="font-medium ${t.status==='done'?'text-muted line-through':'text-ink'}">${t.title}</td>
+                <td>${t.category || '—'}</td>
+                <td class="${dueClass}">${fmtDue(t.due_date)}</td>
+                <td>${t.assignee_initials || '—'}</td>
+                <td>${pill}</td>
+              </tr>`;
+            }).join('')
+          }
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderTabUnits(p, units) {
+  const rows = units.map(u => {
+    const lease = state.leases.find(l => l.unit_id === u.id && l.status === 'active');
+    const tenant = lease ? state.tenants.find(t => t.id === lease.tenant_id) : null;
+    return { id: u.id, leaseId: lease?.id, unit: u.unit_number, name: tenant?.name || 'VACANT', tenantId: tenant?.id, sqft: u.sqft, monthly: lease?.monthly_rent || 0, ends: lease?.end_date || null, status: u.status };
+  });
+  const monthlyRent = rows.reduce((s,r) => s + Number(r.monthly), 0);
+  const avgPerSqft = p.sqft ? (monthlyRent * 12 / p.sqft) : 0;
+  const hasVacant = units.some(u => u.status === 'vacant');
+  return `
+    <div class="grid grid-cols-4 gap-4 mb-6">
+      <div class="card p-4"><div class="kpi-label mb-1">Total Units</div><div class="font-display text-[24px]">${units.length}</div></div>
+      <div class="card p-4"><div class="kpi-label mb-1">Occupied</div><div class="font-display text-[24px] text-sage">${units.filter(u=>u.status==='occupied').length}</div></div>
+      <div class="card p-4"><div class="kpi-label mb-1">Vacant</div><div class="font-display text-[24px] ${units.filter(u=>u.status==='vacant').length>0?'text-rust':''}">${units.filter(u=>u.status==='vacant').length}</div></div>
+      <div class="card p-4"><div class="kpi-label mb-1">Avg Rent / Sqft</div><div class="font-display text-[24px]">$${avgPerSqft.toFixed(2)}</div></div>
+    </div>
+    ${hasVacant ? `
+    <div class="flex justify-end mb-4">
+      <button class="btn-primary" onclick="openSignLeaseModal(null, '${p.id}')"><i data-lucide="file-signature" class="w-3.5 h-3.5"></i> Sign Lease on Vacant Unit</button>
+    </div>` : ''}
+    <div class="card overflow-hidden">
+      <table class="data-table">
+        <thead><tr><th>Unit</th><th>Tenant</th><th>Sqft</th><th>Monthly</th><th>Lease Ends</th><th>Status</th></tr></thead>
+        <tbody>
+          ${rows.length === 0 ? '<tr><td colspan="6" class="text-center text-muted py-8 italic">No units</td></tr>' :
+            rows.map(r => {
+              const pill = r.status === 'occupied' ? '<span class="pill pill-occupied"><span class="pill-dot"></span>Occupied</span>'
+                : r.status === 'vacant' ? '<span class="pill pill-vacant"><span class="pill-dot"></span>Vacant</span>'
+                : '<span class="pill pill-notice"><span class="pill-dot"></span>Notice</span>';
+              const clickAction = r.leaseId ? `openLeaseModal('${r.leaseId}')` : (r.tenantId ? `openTenantModal('${r.tenantId}')` : `openSignLeaseModal('${r.id}')`);
+              return `<tr class="editable" onclick="${clickAction}">
+                <td class="font-mono text-[12px] font-medium">${r.unit}</td>
+                <td>${r.name === 'VACANT' ? '<span class="text-muted italic">— vacant —</span>' : '<span class="font-medium text-ink">'+r.name+'</span>'}</td>
+                <td class="font-mono text-[12px]">${r.sqft?.toLocaleString() || '—'}</td>
+                <td class="font-mono text-[12px]">${r.monthly == 0 ? '—' : fmtMoney(r.monthly)}</td>
+                <td>${r.ends ? new Date(r.ends).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '—'}</td>
+                <td>${pill}</td>
+              </tr>`;
+            }).join('')
+          }
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderTabAccess(p) {
+  const codes = state.accessCodes.filter(c => c.property_id === p.id);
+  return `
+    <div class="mb-5 flex items-start gap-3 p-4 rounded" style="background:rgba(168,128,74,0.08); border:1px solid var(--brass-soft);">
+      <i data-lucide="shield-alert" class="w-5 h-5 text-brass-dark mt-0.5"></i>
+      <div class="flex-1">
+        <div class="text-[13.5px] font-medium text-ink-soft">Sensitive Information</div>
+        <div class="text-[12.5px] text-muted mt-0.5">Codes are blurred by default. Click to reveal. Click anywhere on the card to edit.</div>
+      </div>
+      <button class="btn-secondary" onclick="openCodeModal(null, '${p.id}')"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Code</button>
+    </div>
+    <div class="grid grid-cols-2 gap-5">
+      ${codes.length === 0 ? '<div class="col-span-2 text-center text-muted py-12 italic">No access codes recorded</div>' :
+        codes.map(c => `
+          <div class="card p-5 card-hover cursor-pointer" onclick="openCodeModal('${c.id}')">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="font-display text-[17px] tracking-tight">${c.label}</h4>
+              <button class="btn-icon" onclick="event.stopPropagation(); toggleReveal(this)"><i data-lucide="eye" class="w-4 h-4"></i></button>
+            </div>
+            <div class="code-container" data-revealed="false">
+              <div class="mono-block code-blur">${c.code_value}</div>
+            </div>
+            <div class="text-[11.5px] text-muted mt-2.5">${c.notes || ''}${c.last_rotated ? (c.notes?' · ':'') + 'Last rotated ' + new Date(c.last_rotated).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : ''}</div>
+          </div>`).join('')
+      }
+    </div>`;
+}
+
+function renderTabDocs(p) {
+  const docs = state.documents.filter(d => d.property_id === p.id);
+  return `
+    <div class="card overflow-hidden">
+      <table class="data-table">
+        <thead><tr><th></th><th>Document</th><th>Type</th><th>Scope</th><th>Uploaded</th><th>Expires</th><th></th></tr></thead>
+        <tbody>
+          ${docs.length === 0 ? '<tr><td colspan="7" class="text-center text-muted py-8 italic">No documents</td></tr>' :
+            docs.map(d => {
+              const expDays = d.expires_at ? daysFromNow(d.expires_at) : null;
+              const expColor = expDays === null ? 'var(--ink-muted)' : expDays < 0 ? 'var(--rust)' : expDays < 60 ? 'var(--brass-dark)' : 'var(--sage)';
+              const iconMap = { 'Lease':'file-text','COI':'shield','Permit':'file-check','Inspection':'flame','Contract':'file-text','Photos':'image' };
+              return `<tr>
+                <td><i data-lucide="${iconMap[d.doc_type] || 'file'}" class="w-4 h-4 text-muted"></i></td>
+                <td class="font-medium text-ink">${d.name}</td>
+                <td>${d.doc_type}</td>
+                <td>${d.scope || '—'}</td>
+                <td>${d.uploaded_at ? new Date(d.uploaded_at).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '—'}</td>
+                <td style="color:${expColor};font-weight:500">${d.expires_at ? new Date(d.expires_at).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '—'}</td>
+                <td><button class="btn-icon"><i data-lucide="download" class="w-3.5 h-3.5"></i></button></td>
+              </tr>`;
+            }).join('')
+          }
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function renderTabPhotos(p) {
+  const photos = state.photos.filter(ph => ph.property_id === p.id);
+  const grouped = {};
+  photos.forEach(ph => { (grouped[ph.category] = grouped[ph.category] || []).push(ph); });
+  return Object.keys(grouped).length === 0 ? '<div class="text-center text-muted py-12 italic">No photos uploaded</div>' :
+    Object.entries(grouped).map(([cat, list]) => `
+      <div class="label-divider"><span class="label-divider-text">${cat.charAt(0).toUpperCase()+cat.slice(1)}</span></div>
+      <div class="grid grid-cols-6 gap-3">
+        ${list.map(ph => `<div class="photo-tile" style="background-image:url('${ph.image_url}')" title="${ph.caption || ''}"></div>`).join('')}
+      </div>`).join('');
+}
+
+function renderTabMaintenance(p) {
+  const wos = state.workOrders.filter(w => w.property_id === p.id);
+  const open = wos.filter(w => w.status !== 'complete').length;
+  const ytdSpend = wos.filter(w => w.cost_cents).reduce((s,w) => s + Number(w.cost_cents)/100, 0);
+  return `
+    <div class="grid grid-cols-3 gap-5 mb-6">
+      <div class="card p-5"><div class="kpi-label mb-1">Open WOs</div><div class="font-display text-[28px]">${open}</div></div>
+      <div class="card p-5"><div class="kpi-label mb-1">YTD Spend</div><div class="font-display text-[28px]">${ytdSpend > 0 ? '$' + (ytdSpend/1000).toFixed(1) + 'K' : '—'}</div></div>
+      <div class="card p-5"><div class="kpi-label mb-1">Total WOs</div><div class="font-display text-[28px]">${wos.length}</div></div>
+    </div>
+    <div class="card overflow-hidden">
+      <table class="data-table">
+        <thead><tr><th>WO#</th><th>Description</th><th>Vendor</th><th>Status</th><th>Reported</th><th>Cost</th></tr></thead>
+        <tbody>
+          ${wos.length === 0 ? '<tr><td colspan="6" class="text-center text-muted py-8 italic">No work orders</td></tr>' :
+            wos.map(w => {
+              const pill = w.status === 'complete' ? '<span class="pill pill-occupied"><span class="pill-dot"></span>Complete</span>'
+                : w.status === 'scheduled' ? '<span class="pill pill-due-soon"><span class="pill-dot"></span>Scheduled</span>'
+                : '<span class="pill pill-overdue"><span class="pill-dot" style="background:white"></span>Open</span>';
+              return `<tr>
+                <td class="font-mono text-[12px]">${w.wo_number}</td>
+                <td class="font-medium text-ink">${w.description}</td>
+                <td>${w.vendor || '—'}</td>
+                <td>${pill}</td>
+                <td>${w.reported_date ? new Date(w.reported_date).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—'}</td>
+                <td class="font-mono">${w.cost_cents ? '$' + (w.cost_cents/100).toLocaleString() : '—'}</td>
+              </tr>`;
+            }).join('')
+          }
+        </tbody>
+      </table>
+    </div>`;
+}
+
+// ============== EDIT MODALS ==============
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// ---- TASK ----
+function openTaskModal(taskId = null, presetProp = null) {
+  // Build property options for combobox
+  const propOptions = [
+    { value: '', label: 'Portfolio-wide', sub: 'No specific property' },
+    ...state.properties.map(p => ({ value: p.id, label: p.name, sub: `${p.property_type} · ${p.city}, ${p.state}` })),
+  ];
+
+  // Build assignee options from real team members
+  const assigneeOptions = [
+    { value: '', label: 'Unassigned' },
+    ...state.profiles.map(p => ({
+      value: p.id,
+      label: p.full_name || p.email,
+      sub: `${p.role.charAt(0).toUpperCase() + p.role.slice(1)} · ${p.email}`,
+    })),
+  ];
+
+  if (taskId) {
+    const t = state.tasks.find(x => x.id === taskId);
+    if (!t) return;
+    document.getElementById('task-modal-title').textContent = 'Edit Task';
+    document.getElementById('task-edit-id').value = t.id;
+    document.getElementById('task-title').value = t.title || '';
+    Combo.mount('task-property-combo', { options: propOptions, value: t.property_id || '', placeholder: 'Type to search properties…' });
+    document.getElementById('task-priority').value = t.priority || 'medium';
+    document.getElementById('task-category').value = t.category || '';
+    document.getElementById('task-due').value = t.due_date || '';
+    Combo.mount('task-assignee-combo', { options: assigneeOptions, value: t.assignee_user_id || '', placeholder: 'Type to assign someone…' });
+    document.getElementById('task-status').value = t.status || 'open';
+    document.getElementById('task-delete-btn').style.display = 'inline-flex';
+  } else {
+    document.getElementById('task-modal-title').textContent = 'New Task';
+    document.getElementById('task-edit-id').value = '';
+    document.getElementById('task-title').value = '';
+    Combo.mount('task-property-combo', { options: propOptions, value: presetProp || state.currentPropertyId || '', placeholder: 'Type to search properties…' });
+    document.getElementById('task-priority').value = 'medium';
+    document.getElementById('task-category').value = '';
+    document.getElementById('task-due').value = new Date(Date.now() + 86400000*3).toISOString().slice(0,10);
+    // Default to me
+    Combo.mount('task-assignee-combo', { options: assigneeOptions, value: state.currentUser?.id || '', placeholder: 'Type to assign someone…' });
+    document.getElementById('task-status').value = 'open';
+    document.getElementById('task-delete-btn').style.display = 'none';
+  }
+  document.getElementById('task-modal').classList.add('show');
+}
+
+async function saveTask() {
+  const id = document.getElementById('task-edit-id').value;
+  const assigneeUserId = Combo.get('task-assignee-combo')?.getValue() || null;
+  const assigneeProfile = assigneeUserId ? state.profiles.find(p => p.id === assigneeUserId) : null;
+  const payload = {
+    title: document.getElementById('task-title').value.trim(),
+    property_id: Combo.get('task-property-combo')?.getValue() || null,
+    priority: document.getElementById('task-priority').value,
+    category: document.getElementById('task-category').value.trim() || null,
+    due_date: document.getElementById('task-due').value || null,
+    assignee_user_id: assigneeUserId,
+    assignee_initials: assigneeProfile?.initials || null,
+    assignee_name: assigneeProfile?.full_name || null,
+    status: document.getElementById('task-status').value,
+  };
+  if (!payload.title) { toast('Title required', { tone: 'error' }); return; }
+  if (payload.status === 'done') payload.completed_at = new Date().toISOString();
+
+  if (id) {
+    markSelfEdit('tasks', id);
+    const { error } = await sb.from('tasks').update(payload).eq('id', id);
+    if (error) { toast('Save failed', { tone: 'error' }); return; }
+    toast('Task updated');
+  } else {
+    const { data, error } = await sb.from('tasks').insert(payload).select().single();
+    if (error) { toast('Could not create task', { tone: 'error' }); return; }
+    markSelfEdit('tasks', data.id);
+    toast('Task created');
+  }
+  closeModal('task-modal');
+}
+
+async function deleteTask() {
+  const id = document.getElementById('task-edit-id').value;
+  if (!id || !confirm('Delete this task?')) return;
+  markSelfEdit('tasks', id);
+  const { error } = await sb.from('tasks').delete().eq('id', id);
+  if (error) { toast('Delete failed', { tone: 'error' }); return; }
+  toast('Task deleted');
+  closeModal('task-modal');
+}
+
+async function toggleTaskDone(taskId, currentStatus) {
+  const newStatus = currentStatus === 'done' ? 'open' : 'done';
+  markSelfEdit('tasks', taskId);
+  const { error } = await sb.from('tasks').update({ status: newStatus, completed_at: newStatus === 'done' ? new Date().toISOString() : null }).eq('id', taskId);
+  if (error) toast('Update failed', { tone: 'error' });
+  else toast(newStatus === 'done' ? 'Marked complete' : 'Reopened task');
+}
+
+// ---- TENANT ----
+function openTenantModal(tenantId = null) {
+  if (tenantId) {
+    const t = state.tenants.find(x => x.id === tenantId);
+    if (!t) return;
+    document.getElementById('tenant-modal-title').textContent = 'Edit Tenant';
+    document.getElementById('tenant-edit-id').value = t.id;
+    document.getElementById('tenant-name').value = t.name || '';
+    document.getElementById('tenant-contact').value = t.primary_contact || '';
+    document.getElementById('tenant-email').value = t.email || '';
+    document.getElementById('tenant-phone').value = t.phone || '';
+    document.getElementById('tenant-delete-btn').style.display = 'inline-flex';
+  } else {
+    document.getElementById('tenant-modal-title').textContent = 'Add Tenant';
+    document.getElementById('tenant-edit-id').value = '';
+    document.getElementById('tenant-name').value = '';
+    document.getElementById('tenant-contact').value = '';
+    document.getElementById('tenant-email').value = '';
+    document.getElementById('tenant-phone').value = '';
+    document.getElementById('tenant-delete-btn').style.display = 'none';
+  }
+  document.getElementById('tenant-modal').classList.add('show');
+}
+
+async function saveTenant() {
+  const id = document.getElementById('tenant-edit-id').value;
+  const payload = {
+    name: document.getElementById('tenant-name').value.trim(),
+    primary_contact: document.getElementById('tenant-contact').value.trim() || null,
+    email: document.getElementById('tenant-email').value.trim() || null,
+    phone: document.getElementById('tenant-phone').value.trim() || null,
+  };
+  if (!payload.name) { toast('Name required', { tone: 'error' }); return; }
+
+  if (id) {
+    markSelfEdit('tenants', id);
+    const { error } = await sb.from('tenants').update(payload).eq('id', id);
+    if (error) { toast('Save failed', { tone: 'error' }); return; }
+    toast('Tenant updated');
+  } else {
+    const { data, error } = await sb.from('tenants').insert(payload).select().single();
+    if (error) { toast('Could not create tenant', { tone: 'error' }); return; }
+    markSelfEdit('tenants', data.id);
+    toast('Tenant added');
+  }
+  closeModal('tenant-modal');
+}
+
+async function deleteTenant() {
+  const id = document.getElementById('tenant-edit-id').value;
+  if (!id || !confirm('Delete this tenant? Their leases will be affected.')) return;
+  markSelfEdit('tenants', id);
+  const { error } = await sb.from('tenants').delete().eq('id', id);
+  if (error) { toast('Delete failed — likely has active leases', { tone: 'error' }); return; }
+  toast('Tenant deleted');
+  closeModal('tenant-modal');
+}
+
+// ---- SIGN LEASE ----
+function openSignLeaseModal(presetUnitId = null, presetPropertyId = null) {
+  const vacantUnits = state.units.filter(u => u.status !== 'occupied' && !state.leases.find(l => l.unit_id === u.id && l.status === 'active'));
+  if (!vacantUnits.length) {
+    toast('No vacant units available', { tone: 'error' });
+    return;
+  }
+
+  // Build unit options grouped by property
+  const unitOptions = vacantUnits.map(u => {
+    const prop = state.properties.find(p => p.id === u.property_id);
+    return {
+      value: u.id,
+      label: `Unit ${u.unit_number}`,
+      sub: `${u.sqft?.toLocaleString() || '—'} sqft · ${prop?.address_line || ''}`,
+      group: prop?.name || 'Unknown',
+    };
+  });
+
+  // Decide initial unit value
+  let initialUnit = null;
+  if (presetUnitId && vacantUnits.find(u => u.id === presetUnitId)) initialUnit = presetUnitId;
+  else if (presetPropertyId) {
+    const first = vacantUnits.find(u => u.property_id === presetPropertyId);
+    if (first) initialUnit = first.id;
+  }
+
+  Combo.mount('sl-unit-combo', {
+    options: unitOptions,
+    value: initialUnit,
+    groupBy: true,
+    placeholder: 'Type a property or unit number…',
+    onChange: () => updateSignLeaseSqft(),
+  });
+
+  // Build tenant options
+  const tenantOptions = state.tenants.slice().sort((a,b) => a.name.localeCompare(b.name)).map(t => ({
+    value: t.id,
+    label: t.name,
+    sub: t.primary_contact || t.email || t.phone || '',
+  }));
+
+  Combo.mount('sl-tenant-combo', {
+    options: tenantOptions,
+    value: null,
+    placeholder: 'Type to search or create a new tenant…',
+    allowCreate: true,
+    createLabel: 'Create new tenant',
+    onCreate: (name) => {
+      // Set up the "new tenant" sentinel value and reveal the details fields
+      document.getElementById('sl-new-name').value = name;
+      document.getElementById('sl-new-tenant-fields').style.display = 'block';
+      lucide.createIcons();
+      return '__new__';
+    },
+    onChange: (val) => {
+      const isNew = val === '__new__';
+      document.getElementById('sl-new-tenant-fields').style.display = isNew ? 'block' : 'none';
+    },
+  });
+
+  // reset extra fields
+  ['sl-new-contact','sl-new-phone','sl-new-email','sl-rent'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('sl-new-name').value = '';
+  document.getElementById('sl-new-tenant-fields').style.display = 'none';
+  document.getElementById('sl-start').value = new Date().toISOString().slice(0,10);
+  document.getElementById('sl-term').value = '12';
+  applySignLeaseTerm();
+  updateSignLeaseSqft();
+
+  document.getElementById('signlease-modal').classList.add('show');
+  lucide.createIcons();
+}
+
+// kept for backward-compat; the combobox onChange now drives this
+function updateSignLeaseTenant() {
+  const val = Combo.get('sl-tenant-combo')?.getValue();
+  const isNew = val === '__new__';
+  document.getElementById('sl-new-tenant-fields').style.display = isNew ? 'block' : 'none';
+}
+
+function updateSignLeaseSqft() {
+  const unitId = Combo.get('sl-unit-combo')?.getValue();
+  const unit = state.units.find(u => u.id === unitId);
+  const prop = unit ? state.properties.find(p => p.id === unit.property_id) : null;
+  document.getElementById('sl-unit-info').textContent = unit ? `${unit.sqft?.toLocaleString() || '—'} sqft · ${prop?.address_line || ''}` : '';
+}
+
+function applySignLeaseTerm() {
+  const months = parseInt(document.getElementById('sl-term').value);
+  if (!months) return;
+  const start = document.getElementById('sl-start').value;
+  if (!start) return;
+  const d = new Date(start);
+  d.setMonth(d.getMonth() + months);
+  d.setDate(d.getDate() - 1); // end the day before the anniversary
+  document.getElementById('sl-end').value = d.toISOString().slice(0,10);
+}
+
+document.addEventListener('change', e => {
+  if (e.target.id === 'sl-start') applySignLeaseTerm();
+});
+
+async function signLease() {
+  const unitId = Combo.get('sl-unit-combo')?.getValue();
+  const tenantSelectVal = Combo.get('sl-tenant-combo')?.getValue();
+  const start = document.getElementById('sl-start').value;
+  const end = document.getElementById('sl-end').value;
+  const rent = parseFloat(document.getElementById('sl-rent').value) || 0;
+
+  if (!unitId) { toast('Select a unit', { tone: 'error' }); return; }
+  if (!tenantSelectVal) { toast('Select or create a tenant', { tone: 'error' }); return; }
+  if (!start || !end) { toast('Start and end dates required', { tone: 'error' }); return; }
+  if (rent <= 0) { toast('Monthly rent required', { tone: 'error' }); return; }
+  if (new Date(end) <= new Date(start)) { toast('End date must be after start', { tone: 'error' }); return; }
+
+  const unit = state.units.find(u => u.id === unitId);
+  if (!unit) { toast('Unit not found', { tone: 'error' }); return; }
+
+  let tenantId = tenantSelectVal;
+
+  // create new tenant if needed
+  if (tenantSelectVal === '__new__') {
+    const name = document.getElementById('sl-new-name').value.trim();
+    if (!name) { toast('Tenant name required', { tone: 'error' }); return; }
+    const tenantPayload = {
+      name,
+      primary_contact: document.getElementById('sl-new-contact').value.trim() || null,
+      phone: document.getElementById('sl-new-phone').value.trim() || null,
+      email: document.getElementById('sl-new-email').value.trim() || null,
+    };
+    const { data, error } = await sb.from('tenants').insert(tenantPayload).select().single();
+    if (error) { toast('Could not create tenant', { tone: 'error' }); return; }
+    markSelfEdit('tenants', data.id);
+    tenantId = data.id;
+  }
+
+  // create lease
+  const leasePayload = {
+    tenant_id: tenantId,
+    unit_id: unitId,
+    property_id: unit.property_id,
+    start_date: start,
+    end_date: end,
+    monthly_rent: rent,
+    status: 'active',
+  };
+  const { data: lease, error: leaseErr } = await sb.from('leases').insert(leasePayload).select().single();
+  if (leaseErr) { toast('Could not create lease', { tone: 'error' }); console.error(leaseErr); return; }
+  markSelfEdit('leases', lease.id);
+
+  // mark unit occupied
+  markSelfEdit('units', unitId);
+  await sb.from('units').update({ status: 'occupied' }).eq('id', unitId);
+
+  // activity log
+  const tenant = state.tenants.find(t => t.id === tenantId) || { name: document.getElementById('sl-new-name').value.trim() };
+  const prop = state.properties.find(p => p.id === unit.property_id);
+  await sb.from('activity_log').insert({
+    property_id: unit.property_id,
+    actor: state.currentProfile?.full_name || state.currentProfile?.email || 'system',
+    icon: 'file-signature',
+    tone: 'sage',
+    message: `Lease signed: ${tenant.name} at ${prop?.name || ''} Unit ${unit.unit_number} · ${fmtMoney(rent)}/mo`,
+  });
+
+  toast(`Lease signed with ${tenant.name}`);
+  closeModal('signlease-modal');
+}
+
+// ---- LEASE ----
+function openLeaseModal(leaseId) {
+  const l = state.leases.find(x => x.id === leaseId);
+  if (!l) return;
+  const tenantSel = document.getElementById('lease-tenant');
+  tenantSel.innerHTML = state.tenants.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  const unitSel = document.getElementById('lease-unit');
+  unitSel.innerHTML = state.units.map(u => {
+    const p = state.properties.find(x => x.id === u.property_id);
+    return `<option value="${u.id}">${p?.name || ''} · ${u.unit_number}</option>`;
+  }).join('');
+  document.getElementById('lease-modal-title').textContent = 'Edit Lease';
+  document.getElementById('lease-edit-id').value = l.id;
+  document.getElementById('lease-tenant').value = l.tenant_id || '';
+  document.getElementById('lease-unit').value = l.unit_id || '';
+  document.getElementById('lease-start').value = l.start_date || '';
+  document.getElementById('lease-end').value = l.end_date || '';
+  document.getElementById('lease-rent').value = l.monthly_rent || 0;
+  document.getElementById('lease-status').value = l.status || 'active';
+  document.getElementById('lease-modal').classList.add('show');
+}
+
+async function saveLease() {
+  const id = document.getElementById('lease-edit-id').value;
+  const unitId = document.getElementById('lease-unit').value;
+  const unit = state.units.find(u => u.id === unitId);
+  const payload = {
+    tenant_id: document.getElementById('lease-tenant').value || null,
+    unit_id: unitId || null,
+    property_id: unit?.property_id || null,
+    start_date: document.getElementById('lease-start').value || null,
+    end_date: document.getElementById('lease-end').value || null,
+    monthly_rent: parseFloat(document.getElementById('lease-rent').value) || 0,
+    status: document.getElementById('lease-status').value,
+  };
+  markSelfEdit('leases', id);
+  const { error } = await sb.from('leases').update(payload).eq('id', id);
+  if (error) { toast('Save failed', { tone: 'error' }); return; }
+  toast('Lease updated');
+  closeModal('lease-modal');
+}
+
+// ---- ACCESS CODE ----
+function openCodeModal(codeId = null, propertyId = null) {
+  if (codeId) {
+    const c = state.accessCodes.find(x => x.id === codeId);
+    if (!c) return;
+    document.getElementById('code-modal-title').textContent = 'Edit Access Code';
+    document.getElementById('code-edit-id').value = c.id;
+    document.getElementById('code-property-id').value = c.property_id;
+    document.getElementById('code-label').value = c.label || '';
+    document.getElementById('code-value').value = c.code_value || '';
+    document.getElementById('code-notes').value = c.notes || '';
+    document.getElementById('code-rotated').value = c.last_rotated || '';
+    document.getElementById('code-delete-btn').style.display = 'inline-flex';
+  } else {
+    document.getElementById('code-modal-title').textContent = 'Add Access Code';
+    document.getElementById('code-edit-id').value = '';
+    document.getElementById('code-property-id').value = propertyId;
+    document.getElementById('code-label').value = '';
+    document.getElementById('code-value').value = '';
+    document.getElementById('code-notes').value = '';
+    document.getElementById('code-rotated').value = new Date().toISOString().slice(0,10);
+    document.getElementById('code-delete-btn').style.display = 'none';
+  }
+  document.getElementById('code-modal').classList.add('show');
+}
+
+async function saveCode() {
+  const id = document.getElementById('code-edit-id').value;
+  const payload = {
+    property_id: document.getElementById('code-property-id').value,
+    label: document.getElementById('code-label').value.trim(),
+    code_value: document.getElementById('code-value').value.trim(),
+    notes: document.getElementById('code-notes').value.trim() || null,
+    last_rotated: document.getElementById('code-rotated').value || null,
+  };
+  if (!payload.label || !payload.code_value) { toast('Label and code required', { tone: 'error' }); return; }
+
+  if (id) {
+    markSelfEdit('access_codes', id);
+    const { error } = await sb.from('access_codes').update(payload).eq('id', id);
+    if (error) { toast('Save failed', { tone: 'error' }); return; }
+    toast('Code updated');
+  } else {
+    const { data, error } = await sb.from('access_codes').insert(payload).select().single();
+    if (error) { toast('Could not create code', { tone: 'error' }); return; }
+    markSelfEdit('access_codes', data.id);
+    toast('Code added');
+  }
+  closeModal('code-modal');
+}
+
+async function deleteCode() {
+  const id = document.getElementById('code-edit-id').value;
+  if (!id || !confirm('Delete this access code?')) return;
+  markSelfEdit('access_codes', id);
+  const { error } = await sb.from('access_codes').delete().eq('id', id);
+  if (error) { toast('Delete failed', { tone: 'error' }); return; }
+  toast('Code deleted');
+  closeModal('code-modal');
+}
+
+// ---- PROPERTY (multi-step create/edit) ----
+const propertyDraft = { units: [], imageUrl: null, uploadedPath: null };
+let propertyStep = 1;
+let propertyEditingId = null;
+
+function updatePropSlug() {
+  // only update slug preview in CREATE mode; editing shouldn't change slugs
+  if (propertyEditingId) return;
+  const name = document.getElementById('prop-name').value.trim();
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  document.getElementById('prop-slug-preview').textContent = slug || '—';
+  propertyDraft.slug = slug;
+}
+
+function openPropertyModal(editId = null) {
+  propertyEditingId = editId;
+  propertyStep = 1;
+  propertyDraft.imageUrl = null;
+  propertyDraft.uploadedPath = null;
+
+  // Defensive reset: always clear any stale button state from previous attempts
+  const createBtn = document.getElementById('prop-create-btn');
+  createBtn.disabled = false;
+
+  if (editId) {
+    const p = state.properties.find(x => x.id === editId);
+    if (!p) return;
+    document.getElementById('property-modal-title').textContent = 'Edit Property';
+    document.getElementById('property-modal-subtitle').textContent = `${p.name} · ${p.property_type}`;
+    document.getElementById('property-edit-id').value = p.id;
+    document.getElementById('prop-name').value = p.name || '';
+    document.getElementById('prop-type').value = p.property_type || 'Warehouse';
+    document.getElementById('prop-year').value = p.year_built || '';
+    document.getElementById('prop-address').value = p.address_line || '';
+    document.getElementById('prop-city').value = p.city || '';
+    document.getElementById('prop-state').value = p.state || 'NJ';
+    document.getElementById('prop-zip').value = p.zip || '';
+    document.getElementById('prop-sqft').value = p.sqft || '';
+    document.getElementById('prop-acres').value = p.lot_acres || '';
+    document.getElementById('prop-owner').value = p.owner_entity || '';
+    document.getElementById('prop-acquired').value = p.acquired_date || '';
+    document.getElementById('prop-parcel').value = p.parcel_id || '';
+    document.getElementById('prop-zoning').value = p.zoning || '';
+    document.getElementById('prop-slug-preview').textContent = p.slug || '—';
+    propertyDraft.slug = p.slug;
+    propertyDraft.imageUrl = p.hero_image_url;
+    propertyDraft.units = state.units.filter(u => u.property_id === editId).map(u => ({ id: u.id, unit_number: u.unit_number, sqft: u.sqft, status: u.status }));
+    if (propertyDraft.units.length === 0) propertyDraft.units = [{ unit_number: 'Main', sqft: p.sqft || 0, status: 'vacant' }];
+    document.getElementById('prop-archive-btn').style.display = 'inline-flex';
+    document.getElementById('prop-create-btn').innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i> Save Changes';
+  } else {
+    document.getElementById('property-modal-title').textContent = 'Add Property';
+    document.getElementById('property-modal-subtitle').textContent = 'A new property added to the DMS portfolio.';
+    document.getElementById('property-edit-id').value = '';
+    ['prop-name','prop-year','prop-address','prop-city','prop-zip','prop-sqft','prop-acres','prop-owner','prop-acquired','prop-parcel','prop-zoning'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('prop-state').value = 'NJ';
+    document.getElementById('prop-type').value = 'Warehouse';
+    document.getElementById('prop-slug-preview').textContent = '—';
+    propertyDraft.slug = null;
+    propertyDraft.units = [{ unit_number: 'Main', sqft: 0, status: 'vacant' }];
+    document.getElementById('prop-archive-btn').style.display = 'none';
+    document.getElementById('prop-create-btn').innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i> Create Property';
+  }
+
+  renderUnitRows();
+  refreshImagePreview();
+  showPropertyStep(1);
+  document.getElementById('property-modal').classList.add('show');
+  lucide.createIcons();
+}
+
+function refreshImagePreview() {
+  const preview = document.getElementById('image-drop-preview');
+  const empty = document.getElementById('image-drop-empty');
+  const clearBtn = document.getElementById('image-clear-btn');
+  const zone = document.getElementById('image-drop-zone');
+  if (propertyDraft.imageUrl) {
+    preview.style.backgroundImage = `url('${propertyDraft.imageUrl}')`;
+    preview.style.display = 'block';
+    if (empty) empty.style.display = 'none';
+    clearBtn.style.display = 'inline-block';
+    zone.classList.add('has-image');
+  } else {
+    preview.style.display = 'none';
+    if (empty) empty.style.display = 'block';
+    clearBtn.style.display = 'none';
+    zone.classList.remove('has-image');
+  }
+}
+
+function clearImage() {
+  propertyDraft.imageUrl = null;
+  propertyDraft.uploadedPath = null;
+  document.getElementById('prop-image-file').value = '';
+  refreshImagePreview();
+}
+
+async function handleImageFile(file) {
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { toast('Image too large (max 10MB)', { tone: 'error' }); return; }
+  const allowed = ['image/jpeg','image/png','image/webp','image/gif'];
+  if (!allowed.includes(file.type)) { toast('Use JPG, PNG, WebP, or GIF', { tone: 'error' }); return; }
+
+  const empty = document.getElementById('image-drop-empty');
+  const preview = document.getElementById('image-drop-preview');
+  const uploading = document.getElementById('image-drop-uploading');
+  if (empty) empty.style.display = 'none';
+  preview.style.display = 'none';
+  uploading.style.display = 'flex';
+  lucide.createIcons();
+
+  // unique path
+  const ext = file.name.split('.').pop().toLowerCase();
+  const path = `hero/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+
+  try {
+    const { error: uploadErr } = await sb.storage.from('property-images').upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type,
+    });
+    if (uploadErr) throw uploadErr;
+    const { data: pub } = sb.storage.from('property-images').getPublicUrl(path);
+    propertyDraft.imageUrl = pub.publicUrl;
+    propertyDraft.uploadedPath = path;
+    uploading.style.display = 'none';
+    refreshImagePreview();
+    toast('Image uploaded');
+  } catch (e) {
+    console.error(e);
+    uploading.style.display = 'none';
+    refreshImagePreview();
+    toast('Upload failed', { tone: 'error' });
+  }
+}
+
+function showPropertyStep(n) {
+  propertyStep = n;
+  for (let i = 1; i <= 3; i++) {
+    document.getElementById(`property-step-${i}`).style.display = i === n ? 'block' : 'none';
+    const pip = document.getElementById(`step-pip-${i}`);
+    const num = pip.querySelector('.step-num');
+    const label = pip.querySelector('.text-\\[12px\\]');
+    num.classList.remove('active', 'done');
+    if (i < n) { num.classList.add('done'); num.innerHTML = '<i data-lucide="check" class="w-3 h-3"></i>'; label.classList.remove('text-muted'); label.classList.add('text-ink'); }
+    else if (i === n) { num.classList.add('active'); num.textContent = i; label.classList.remove('text-muted'); label.classList.add('text-ink'); }
+    else { num.textContent = i; label.classList.remove('text-ink'); label.classList.add('text-muted'); }
+  }
+  document.getElementById('prop-prev-btn').style.display = n === 1 ? 'none' : 'inline-flex';
+  document.getElementById('prop-next-btn').style.display = n === 3 ? 'none' : 'inline-flex';
+  document.getElementById('prop-create-btn').style.display = n === 3 ? 'inline-flex' : 'none';
+  if (n === 3) renderPropertyReview();
+  lucide.createIcons();
+}
+
+function propertyStepNext() {
+  if (propertyStep === 1) {
+    const name = document.getElementById('prop-name').value.trim();
+    const address = document.getElementById('prop-address').value.trim();
+    const city = document.getElementById('prop-city').value.trim();
+    if (!name) { toast('Property name required', { tone: 'error' }); return; }
+    if (!address) { toast('Street address required', { tone: 'error' }); return; }
+    if (!city) { toast('City required', { tone: 'error' }); return; }
+    // in create mode, auto-size the default unit if user hasn't customized it
+    if (!propertyEditingId && propertyDraft.units.length === 1 && propertyDraft.units[0].unit_number === 'Main' && propertyDraft.units[0].sqft === 0) {
+      const totalSqft = parseInt(document.getElementById('prop-sqft').value) || 0;
+      propertyDraft.units[0].sqft = totalSqft;
+      renderUnitRows();
+    }
+  }
+  if (propertyStep < 3) showPropertyStep(propertyStep + 1);
+}
+
+function propertyStepPrev() {
+  if (propertyStep > 1) showPropertyStep(propertyStep - 1);
+}
+
+function renderUnitRows() {
+  const container = document.getElementById('unit-rows');
+  container.innerHTML = propertyDraft.units.map((u, i) => `
+    <div class="unit-row">
+      <input type="text" value="${u.unit_number || ''}" placeholder="Unit #" class="input-field" oninput="updateUnit(${i}, 'unit_number', this.value)">
+      <select class="input-field" onchange="updateUnit(${i}, 'status', this.value)">
+        <option value="vacant" ${u.status==='vacant'?'selected':''}>Vacant</option>
+        <option value="occupied" ${u.status==='occupied'?'selected':''}>Occupied</option>
+        <option value="notice" ${u.status==='notice'?'selected':''}>Notice</option>
+      </select>
+      <input type="number" value="${u.sqft || ''}" placeholder="Sqft" class="input-field font-mono" oninput="updateUnit(${i}, 'sqft', parseInt(this.value)||0)">
+      <button class="unit-remove" onclick="removeUnit(${i})" ${propertyDraft.units.length === 1 ? 'disabled style=\"opacity:0.3;cursor:not-allowed\"' : ''}><i data-lucide="x" class="w-3.5 h-3.5"></i></button>
+    </div>
+  `).join('');
+  document.getElementById('unit-count').textContent = propertyDraft.units.length;
+  document.getElementById('unit-total-sqft').textContent = propertyDraft.units.reduce((s,u) => s + (parseInt(u.sqft)||0), 0).toLocaleString();
+  lucide.createIcons();
+}
+
+function updateUnit(i, key, val) {
+  propertyDraft.units[i][key] = val;
+  if (key === 'sqft') document.getElementById('unit-total-sqft').textContent = propertyDraft.units.reduce((s,u) => s + (parseInt(u.sqft)||0), 0).toLocaleString();
+}
+
+function addUnitRow() {
+  const next = propertyDraft.units.length + 1;
+  propertyDraft.units.push({ unit_number: String(next), sqft: 0, status: 'vacant' });
+  renderUnitRows();
+}
+
+function addBulkUnits(n) {
+  const start = propertyDraft.units.length;
+  for (let i = 1; i <= n; i++) propertyDraft.units.push({ unit_number: String(start + i), sqft: 0, status: 'vacant' });
+  renderUnitRows();
+}
+
+function removeUnit(i) {
+  if (propertyDraft.units.length <= 1) return;
+  propertyDraft.units.splice(i, 1);
+  renderUnitRows();
+}
+
+// drag & drop image
+document.addEventListener('DOMContentLoaded', () => {
+  const zone = document.getElementById('image-drop-zone');
+  if (!zone) return;
+  ['dragenter','dragover'].forEach(evt => zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.add('drag-over'); }));
+  ['dragleave','drop'].forEach(evt => zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.remove('drag-over'); }));
+  zone.addEventListener('drop', e => {
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) handleImageFile(e.dataTransfer.files[0]);
+  });
+});
+
+function renderPropertyReview() {
+  const name = document.getElementById('prop-name').value.trim();
+  const type = document.getElementById('prop-type').value;
+  const address = document.getElementById('prop-address').value.trim();
+  const city = document.getElementById('prop-city').value.trim();
+  const stateV = document.getElementById('prop-state').value.trim();
+  const zip = document.getElementById('prop-zip').value.trim();
+  const sqft = parseInt(document.getElementById('prop-sqft').value) || 0;
+  const year = document.getElementById('prop-year').value;
+  const owner = document.getElementById('prop-owner').value.trim();
+  const unitSqftTotal = propertyDraft.units.reduce((s,u) => s + (parseInt(u.sqft)||0), 0);
+  const occupiedCount = propertyDraft.units.filter(u => u.status === 'occupied').length;
+  const hasImage = !!propertyDraft.imageUrl;
+
+  document.getElementById('property-review').innerHTML = `
+    <div class="review-row"><div class="review-label">Name</div><div class="review-val">${name || '<span class="text-muted italic">missing</span>'}</div></div>
+    <div class="review-row"><div class="review-label">Type</div><div class="review-val">${type}</div></div>
+    <div class="review-row"><div class="review-label">Address</div><div class="review-val">${address}, ${city}, ${stateV} ${zip}</div></div>
+    <div class="review-row"><div class="review-label">Total Sqft</div><div class="review-val">${sqft ? sqft.toLocaleString() : '—'}${sqft && unitSqftTotal && sqft !== unitSqftTotal ? `<span class="text-brass-dark text-[11px] ml-2">(unit total: ${unitSqftTotal.toLocaleString()})</span>` : ''}</div></div>
+    <div class="review-row"><div class="review-label">Year Built</div><div class="review-val">${year || '—'}</div></div>
+    <div class="review-row"><div class="review-label">Owner Entity</div><div class="review-val">${owner || '—'}</div></div>
+    <div class="review-row"><div class="review-label">Units</div><div class="review-val">${propertyDraft.units.length} total · ${occupiedCount} occupied · ${propertyDraft.units.length - occupiedCount} vacant</div></div>
+    <div class="review-row"><div class="review-label">Image</div><div class="review-val">${hasImage ? '<span class="text-sage">✓ Uploaded</span>' : '<span class="text-muted italic">none</span>'}</div></div>
+  `;
+}
+
+async function saveProperty() {
+  const name = document.getElementById('prop-name').value.trim();
+  if (!name) { toast('Property name required', { tone: 'error' }); showPropertyStep(1); return; }
+
+  const propertyPayload = {
+    name,
+    property_type: document.getElementById('prop-type').value,
+    address_line: document.getElementById('prop-address').value.trim(),
+    city: document.getElementById('prop-city').value.trim(),
+    state: document.getElementById('prop-state').value.trim() || 'NJ',
+    zip: document.getElementById('prop-zip').value.trim(),
+    hero_image_url: propertyDraft.imageUrl || null,
+    sqft: parseInt(document.getElementById('prop-sqft').value) || 0,
+    year_built: parseInt(document.getElementById('prop-year').value) || null,
+    acquired_date: document.getElementById('prop-acquired').value || null,
+    owner_entity: document.getElementById('prop-owner').value.trim() || null,
+    parcel_id: document.getElementById('prop-parcel').value.trim() || null,
+    zoning: document.getElementById('prop-zoning').value.trim() || null,
+    lot_acres: parseFloat(document.getElementById('prop-acres').value) || null,
+  };
+
+  // slug only set on create
+  if (!propertyEditingId) {
+    propertyPayload.slug = propertyDraft.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  }
+
+  const createBtn = document.getElementById('prop-create-btn');
+  const isEdit = !!propertyEditingId;
+  const restoreBtn = () => {
+    createBtn.disabled = false;
+    createBtn.innerHTML = isEdit
+      ? '<i data-lucide="check" class="w-3.5 h-3.5"></i> Save Changes'
+      : '<i data-lucide="check" class="w-3.5 h-3.5"></i> Create Property';
+    lucide.createIcons();
+  };
+
+  createBtn.disabled = true;
+  createBtn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> ${isEdit ? 'Saving…' : 'Creating…'}`;
+  lucide.createIcons();
+
+  let resultProp;
+  try {
+    if (isEdit) {
+      markSelfEdit('properties', propertyEditingId);
+      const { data, error } = await sb.from('properties').update(propertyPayload).eq('id', propertyEditingId).select().single();
+      if (error) { toast('Save failed: ' + (error.message || ''), { tone: 'error' }); restoreBtn(); return; }
+      resultProp = data;
+
+      // update units: existing ones get UPDATE, new ones get INSERT
+      const existingUnitIds = state.units.filter(u => u.property_id === propertyEditingId).map(u => u.id);
+      const draftUnitIds = propertyDraft.units.filter(u => u.id).map(u => u.id);
+      const toDelete = existingUnitIds.filter(id => !draftUnitIds.includes(id));
+      const toInsert = propertyDraft.units.filter(u => !u.id).map(u => ({
+        property_id: propertyEditingId,
+        unit_number: String(u.unit_number || '').trim() || 'Unit',
+        sqft: parseInt(u.sqft) || 0,
+        status: u.status || 'vacant',
+      }));
+      const toUpdate = propertyDraft.units.filter(u => u.id);
+
+      if (toDelete.length) {
+        const safeToDelete = toDelete.filter(id => !state.leases.find(l => l.unit_id === id && l.status === 'active'));
+        const blockedCount = toDelete.length - safeToDelete.length;
+        if (safeToDelete.length) {
+          const { error: delErr } = await sb.from('units').delete().in('id', safeToDelete);
+          if (delErr) console.error('unit delete:', delErr);
+        }
+        if (blockedCount) toast(`${blockedCount} unit(s) kept — they have active leases`, { tone: 'remote' });
+      }
+      if (toInsert.length) {
+        const { error: insErr } = await sb.from('units').insert(toInsert);
+        if (insErr) { toast('Property saved, units failed: ' + insErr.message, { tone: 'error' }); console.error(insErr); }
+      }
+      for (const u of toUpdate) {
+        const { error: upErr } = await sb.from('units').update({ unit_number: String(u.unit_number).trim(), sqft: parseInt(u.sqft) || 0, status: u.status }).eq('id', u.id);
+        if (upErr) console.error('unit update:', upErr);
+      }
+      toast('Property updated');
+    } else {
+      const { data, error } = await sb.from('properties').insert(propertyPayload).select().single();
+      if (error) {
+        toast(error.message?.includes('duplicate') ? 'Slug already in use — try a different name' : 'Could not create property: ' + (error.message || ''), { tone: 'error' });
+        restoreBtn();
+        return;
+      }
+      resultProp = data;
+      markSelfEdit('properties', resultProp.id);
+
+      if (propertyDraft.units.length > 0) {
+        const unitPayloads = propertyDraft.units.map(u => ({
+          property_id: resultProp.id,
+          unit_number: String(u.unit_number || '').trim() || 'Unit',
+          sqft: parseInt(u.sqft) || 0,
+          status: u.status || 'vacant',
+        }));
+        const { error: unitErr } = await sb.from('units').insert(unitPayloads);
+        if (unitErr) { toast('Property created, but units failed: ' + unitErr.message, { tone: 'error' }); console.error(unitErr); }
+      }
+      const { error: logErr } = await sb.from('activity_log').insert({
+        property_id: resultProp.id,
+        actor: state.currentProfile?.full_name || state.currentProfile?.email || 'system',
+        icon: 'building-2',
+        tone: 'sage',
+        message: `New property added: ${resultProp.name} (${propertyPayload.property_type})`,
+      });
+      if (logErr) console.error('activity log:', logErr);
+      toast(`${resultProp.name} created`);
+    }
+
+    closeModal('property-modal');
+    restoreBtn(); // reset for next time before showing the new property
+    if (!isEdit && resultProp) setTimeout(() => showProperty(resultProp.id), 300);
+  } catch (e) {
+    console.error('saveProperty threw:', e);
+    toast('Save failed: ' + (e.message || 'unknown error'), { tone: 'error' });
+    restoreBtn();
+  }
+}
+
+async function archiveProperty() {
+  const id = propertyEditingId;
+  if (!id) return;
+  const p = state.properties.find(x => x.id === id);
+  if (!confirm(`Archive ${p?.name || 'this property'}? It will be hidden from the portfolio but all history is preserved. You can restore it later.`)) return;
+
+  markSelfEdit('properties', id);
+  const { error } = await sb.from('properties').update({ archived_at: new Date().toISOString() }).eq('id', id);
+  if (error) { toast('Archive failed', { tone: 'error' }); return; }
+  await sb.from('activity_log').insert({
+    property_id: id,
+    actor: state.currentProfile?.full_name || state.currentProfile?.email || 'system',
+    icon: 'archive',
+    tone: 'brass',
+    message: `Property archived: ${p?.name || ''}`,
+  });
+  toast('Property archived');
+  closeModal('property-modal');
+  navTo('portfolio');
+}
+
+// ============== NAV ==============
+function toggleReveal(btn) {
+  const container = btn.closest('.card').querySelector('.code-container');
+  const isRevealed = container.dataset.revealed === 'true';
+  container.dataset.revealed = !isRevealed;
+  if (!isRevealed) { container.classList.add('code-revealed'); btn.innerHTML = '<i data-lucide="eye-off" class="w-4 h-4"></i>'; }
+  else { container.classList.remove('code-revealed'); btn.innerHTML = '<i data-lucide="eye" class="w-4 h-4"></i>'; }
+  lucide.createIcons();
+}
+function navTo(name, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('[data-nav]').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('[data-prop-nav]').forEach(n => n.classList.remove('active'));
+  const navEl = el || document.querySelector(`[data-nav="${name}"]`);
+  if (navEl) navEl.classList.add('active');
+  state.currentPropertyId = null;
+  window.scrollTo(0, 0);
+}
+function showProperty(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-property').classList.add('active');
+  document.querySelectorAll('[data-nav]').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('[data-prop-nav]').forEach(n => n.classList.remove('active'));
+  const propNavEl = document.querySelector(`[data-prop-nav="${id}"]`);
+  if (propNavEl) propNavEl.classList.add('active');
+  renderPropertyDetail(id);
+  window.scrollTo(0, 0);
+}
+
+// close modal on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
+});
+
+// ============== AUTH ==============
+state.currentUser = null;     // auth.users record (from session)
+state.currentProfile = null;  // public.profiles record (display info + role)
+state.profiles = [];          // all profiles (for assignee picker)
+state.invitations = [];       // pending invites (admin only)
+
+function showAuthScreen() {
+  document.getElementById('auth-screen').style.display = 'block';
+  document.getElementById('app-shell').style.display = 'none';
+}
+function showApp() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-shell').style.display = 'block';
+}
+
+function toggleAuthMode(mode) {
+  document.getElementById('auth-signin-form').style.display = mode === 'signin' ? 'block' : 'none';
+  document.getElementById('auth-signup-form').style.display = mode === 'signup' ? 'block' : 'none';
+  document.getElementById('auth-error').style.display = 'none';
+  if (mode === 'signup') {
+    document.getElementById('signup-email').value = document.getElementById('auth-email').value;
+  }
+}
+
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+async function signIn() {
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  if (!email || !password) { showAuthError('Email and password required'); return; }
+  const btn = document.getElementById('auth-signin-btn');
+  btn.disabled = true; btn.textContent = 'Signing in…';
+  document.getElementById('auth-error').style.display = 'none';
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if (error) {
+    showAuthError(error.message || 'Sign-in failed');
+    btn.disabled = false; btn.textContent = 'Sign in';
+    return;
+  }
+  // onAuthStateChange will pick this up and boot the app
+}
+
+async function signUp() {
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  if (!email || !password) { showAuthError('Email and password required'); return; }
+  if (password.length < 8) { showAuthError('Password must be at least 8 characters'); return; }
+  const btn = document.getElementById('auth-signup-btn');
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  document.getElementById('auth-error').style.display = 'none';
+
+  const { data, error } = await sb.auth.signUp({ email, password });
+  if (error) {
+    const msg = (error.message || '').toLowerCase().includes('not invited') || (error.message || '').toLowerCase().includes('not permitted')
+      ? `${email} hasn't been invited. Ask an admin to send you an invitation first.`
+      : (error.message || 'Sign-up failed');
+    showAuthError(msg);
+    btn.disabled = false; btn.textContent = 'Create account';
+    return;
+  }
+  // If email confirmation is on, user.session will be null and confirmation email is sent.
+  if (data.session) {
+    // Auto-signed in (email confirmation disabled in Supabase settings)
+    // onAuthStateChange will fire
+  } else {
+    showAuthError('Check your email to confirm your account, then sign in.');
+    btn.disabled = false; btn.textContent = 'Create account';
+    setTimeout(() => toggleAuthMode('signin'), 100);
+  }
+}
+
+async function signOut() {
+  if (!confirm('Sign out?')) return;
+  await sb.auth.signOut();
+  // onAuthStateChange will clear state
+}
+
+function toggleUserMenu() { /* placeholder for future expanded menu */ }
+
+async function loadProfile() {
+  if (!state.currentUser) return;
+  try {
+    const { data, error } = await sb.from('profiles').select('*').eq('id', state.currentUser.id).single();
+    if (error) console.warn('profile query error:', error);
+    state.currentProfile = data || null;
+    if (data) sb.from('profiles').update({ last_seen_at: new Date().toISOString() }).eq('id', data.id);
+  } catch (e) {
+    console.error('loadProfile failed:', e);
+  }
+}
+
+async function loadProfilesAndInvites() {
+  try {
+    const [profs, invs] = await Promise.all([
+      sb.from('profiles').select('*').order('created_at', { ascending: true }),
+      sb.from('invitations').select('*').is('consumed_at', null).order('created_at', { ascending: false }),
+    ]);
+    state.profiles = profs.data || [];
+    state.invitations = invs.data || [];
+    if (profs.error) console.warn('profiles query error:', profs.error);
+    if (invs.error) console.warn('invitations query error:', invs.error);
+  } catch (e) {
+    console.error('loadProfilesAndInvites failed:', e);
+    state.profiles = state.profiles || [];
+    state.invitations = state.invitations || [];
+  }
+}
+
+function renderUserChip() {
+  const p = state.currentProfile;
+  if (!p) return;
+  const initials = p.initials || (p.email || '?').charAt(0).toUpperCase();
+  const name = p.full_name || p.email;
+  document.getElementById('sidebar-user-avatar').textContent = initials;
+  document.getElementById('sidebar-user-avatar').style.background = p.avatar_color || 'var(--brass)';
+  document.getElementById('sidebar-user-name').textContent = name;
+  document.getElementById('sidebar-user-role').textContent = `${p.role.charAt(0).toUpperCase() + p.role.slice(1)} · DMS`;
+}
+
+function renderTeam() {
+  const subtitle = `${state.profiles.length} member${state.profiles.length === 1 ? '' : 's'} · ${state.invitations.length} pending`;
+  document.getElementById('team-subtitle').textContent = subtitle;
+
+  document.getElementById('team-members-table').innerHTML = state.profiles.length === 0
+    ? '<tr><td colspan="4" class="text-center text-muted py-8 italic">No members yet</td></tr>'
+    : state.profiles.map(p => {
+        const isMe = state.currentUser && p.id === state.currentUser.id;
+        return `<tr>
+          <td>
+            <div class="flex items-center gap-2.5">
+              <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-[11px] font-semibold" style="background:${p.avatar_color || 'var(--brass)'}">${p.initials || '?'}</div>
+              <span class="font-medium text-ink">${p.full_name || '—'}${isMe ? ' <span class="text-[11px] text-muted font-normal">(you)</span>' : ''}</span>
+            </div>
+          </td>
+          <td class="font-mono text-[12px]">${p.email}</td>
+          <td><span class="pill ${p.role === 'admin' ? 'pill-notice' : 'pill-scheduled'}"><span class="pill-dot"></span>${p.role}</span></td>
+          <td class="text-[12px]">${p.created_at ? new Date(p.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'}</td>
+        </tr>`;
+      }).join('');
+
+  document.getElementById('team-invites-table').innerHTML = state.invitations.length === 0
+    ? '<tr><td colspan="4" class="text-center text-muted py-8 italic">No pending invitations</td></tr>'
+    : state.invitations.map(i => {
+        const days = daysFromNow(i.created_at);
+        const ago = days === 0 ? 'today' : days === -1 ? 'yesterday' : `${Math.abs(days || 0)}d ago`;
+        return `<tr>
+          <td class="font-mono text-[12px]">${i.email}</td>
+          <td><span class="pill pill-scheduled"><span class="pill-dot"></span>${i.role}</span></td>
+          <td class="text-[12px] text-muted">${ago}</td>
+          <td><button class="btn-icon" onclick="revokeInvite('${i.id}')" title="Revoke"><i data-lucide="x" class="w-3.5 h-3.5"></i></button></td>
+        </tr>`;
+      }).join('');
+  lucide.createIcons();
+}
+
+function openInviteModal() {
+  if (state.currentProfile?.role !== 'admin') { toast('Only admins can invite people', { tone: 'error' }); return; }
+  document.getElementById('invite-email').value = '';
+  document.getElementById('invite-name').value = '';
+  document.getElementById('invite-role').value = 'admin';
+  document.getElementById('invite-modal').classList.add('show');
+}
+
+async function sendInvite() {
+  const email = document.getElementById('invite-email').value.trim().toLowerCase();
+  const fullName = document.getElementById('invite-name').value.trim();
+  const role = document.getElementById('invite-role').value;
+  if (!email) { toast('Email required', { tone: 'error' }); return; }
+  if (state.profiles.find(p => p.email.toLowerCase() === email)) { toast('That email already has an account', { tone: 'error' }); return; }
+  if (state.invitations.find(i => i.email.toLowerCase() === email)) { toast('That email already has a pending invitation', { tone: 'error' }); return; }
+
+  const { error } = await sb.from('invitations').insert({
+    email,
+    full_name: fullName || null,
+    role,
+    invited_by: state.currentUser.id,
+  });
+  if (error) { toast('Invite failed: ' + error.message, { tone: 'error' }); return; }
+  toast(`Invitation created for ${email}`);
+  closeModal('invite-modal');
+  // they'll need to be told manually; future improvement: email them
+}
+
+async function revokeInvite(id) {
+  if (state.currentProfile?.role !== 'admin') { toast('Only admins can revoke invitations', { tone: 'error' }); return; }
+  if (!confirm('Revoke this invitation?')) return;
+  const { error } = await sb.from('invitations').delete().eq('id', id);
+  if (error) { toast('Revoke failed', { tone: 'error' }); return; }
+  toast('Invitation revoked');
+}
+
+// ============== INIT ==============
+async function bootApp() {
+  try {
+    // Load all data and start realtime
+    await Promise.all([loadAllData(), loadProfilesAndInvites()]);
+    await loadProfile();
+    renderUserChip();
+    rerenderAll();
+    renderTypeFilters();
+    renderTeam();
+    setupRealtime();
+    setupRealtimeAuthExtras();
+    showApp();
+    lucide.createIcons();
+  } catch (e) {
+    console.error('Boot failed:', e);
+    // Fall back to auth screen so the page isn't blank
+    try { await sb.auth.signOut(); } catch (_) {}
+    state.currentUser = null;
+    state.currentProfile = null;
+    showAuthScreen();
+    showAuthError('Could not load workspace: ' + (e.message || 'unknown error') + '. Please sign in again.');
+  }
+}
+
+function teardownApp() {
+  state.currentUser = null;
+  state.currentProfile = null;
+  state.properties = []; state.units = []; state.leases = []; state.tenants = [];
+  state.tasks = []; state.activity = []; state.contacts = []; state.documents = [];
+  state.photos = []; state.accessCodes = []; state.workOrders = [];
+  state.profiles = []; state.invitations = [];
+  // remove the realtime channel
+  try { sb.removeAllChannels(); } catch (e) {}
+  showAuthScreen();
+}
+
+function setupRealtimeAuthExtras() {
+  // listen for profile and invitation changes
+  sb.channel('dms-auth')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, async () => {
+      await loadProfilesAndInvites();
+      renderTeam();
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'invitations' }, async () => {
+      await loadProfilesAndInvites();
+      renderTeam();
+    })
+    .subscribe();
+}
+
+// Auth state change listener — fires on sign-in, sign-out, and page load if there's an existing session
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (session?.user) {
+    if (!state.currentUser || state.currentUser.id !== session.user.id) {
+      state.currentUser = session.user;
+      await bootApp();
+    }
+  } else {
+    if (state.currentUser) teardownApp();
+    else showAuthScreen();
+  }
+});
+
+// Allow Enter to submit on auth forms
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  if (document.getElementById('auth-signin-form')?.style.display !== 'none' && document.activeElement?.closest('#auth-signin-form')) {
+    signIn();
+  } else if (document.getElementById('auth-signup-form')?.style.display !== 'none' && document.activeElement?.closest('#auth-signup-form')) {
+    signUp();
+  }
+});
+
+// Initial check: if there's already a session, onAuthStateChange will fire. Otherwise show login.
+(async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) showAuthScreen();
+  // if there IS a session, onAuthStateChange will boot the app
+})();
+</script>
+</body>
+</html>
