@@ -128,6 +128,60 @@
   .hidden-file { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
   #image-drop-preview { aspect-ratio: 16/9; background-size: cover; background-position: center; }
   .archived-banner { background: rgba(168,128,74,0.12); border: 1px solid var(--brass-soft); color: var(--brass-dark); padding: 10px 16px; border-radius: 4px; font-size: 13px; display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+  /* ===== Task side panel (Asana-style drawer) ===== */
+  .panel-backdrop { position: fixed; inset: 0; background: rgba(26,29,35,0.35); opacity: 0; pointer-events: none; transition: opacity 0.18s; z-index: 90; backdrop-filter: blur(1px); }
+  .panel-backdrop.show { opacity: 1; pointer-events: auto; }
+  .side-panel { position: fixed; top: 0; right: 0; height: 100vh; width: 520px; max-width: 100vw; background: var(--paper-card); border-left: 1px solid var(--line); box-shadow: -12px 0 32px rgba(26,29,35,0.10); z-index: 95; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.22s cubic-bezier(0.32, 0.72, 0.32, 1); }
+  .side-panel.show { transform: translateX(0); }
+  .panel-head { padding: 18px 22px 14px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; flex-shrink: 0; }
+  .panel-tabs { display: flex; gap: 4px; padding: 0 22px; border-bottom: 1px solid var(--line); flex-shrink: 0; background: var(--paper-card); }
+  .panel-tab { padding: 10px 14px; font-size: 12.5px; font-weight: 500; color: var(--ink-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; letter-spacing: -0.005em; }
+  .panel-tab:hover { color: var(--ink-soft); }
+  .panel-tab.active { color: var(--ink); border-bottom-color: var(--surge); }
+  .panel-tab .count { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-muted); margin-left: 4px; }
+  .panel-body { flex: 1; overflow-y: auto; padding: 18px 22px 24px; }
+  .panel-foot { border-top: 1px solid var(--line); padding: 12px 22px; background: var(--paper-warm); flex-shrink: 0; }
+  .panel-title-input { font-family: 'Fraunces', Georgia, serif; font-size: 22px; font-weight: 500; letter-spacing: -0.01em; color: var(--ink); background: transparent; border: 1px solid transparent; border-radius: 4px; padding: 4px 8px; margin: -4px -8px; width: 100%; transition: all 0.15s; }
+  .panel-title-input:hover { background: var(--paper-warm); }
+  .panel-title-input:focus { outline: none; background: white; border-color: var(--line); }
+  .panel-meta-row { display: grid; grid-template-columns: 110px 1fr; gap: 10px; align-items: center; padding: 8px 0; font-size: 13px; }
+  .panel-meta-row + .panel-meta-row { border-top: 1px solid var(--line-soft); }
+  .panel-meta-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-muted); }
+  .panel-inline-select { width: 100%; background: transparent; border: 1px solid transparent; border-radius: 4px; padding: 4px 8px; font-size: 13px; color: var(--ink); font-family: inherit; cursor: pointer; transition: all 0.15s; }
+  .panel-inline-select:hover { background: var(--paper-warm); }
+  .panel-inline-select:focus { outline: none; background: white; border-color: var(--line); }
+  .update-item { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
+  .update-item:last-child { border-bottom: none; }
+  .update-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: 600; flex-shrink: 0; }
+  .update-body { flex: 1; min-width: 0; }
+  .update-header { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+  .update-author { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .update-time { font-size: 11.5px; color: var(--ink-muted); font-family: 'JetBrains Mono', monospace; }
+  .update-text { font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); white-space: pre-wrap; word-wrap: break-word; }
+  .update-text .mention { display: inline-block; background: rgba(168,128,74,0.12); color: var(--brass-dark); padding: 0 5px; border-radius: 3px; font-weight: 600; font-size: 12.5px; }
+  .update-attachments { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .attachment-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 9px; background: var(--paper-warm); border: 1px solid var(--line); border-radius: 4px; font-size: 12px; color: var(--ink-soft); text-decoration: none; transition: all 0.15s; max-width: 240px; }
+  .attachment-chip:hover { background: white; border-color: var(--ink-soft); color: var(--ink); }
+  .attachment-chip .att-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .attachment-chip .att-size { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-muted); flex-shrink: 0; }
+  .composer { border: 1px solid var(--line); border-radius: 6px; background: white; transition: border-color 0.15s; }
+  .composer:focus-within { border-color: var(--ink-soft); }
+  .composer-textarea { width: 100%; border: none; background: transparent; padding: 10px 12px; font-size: 13.5px; font-family: inherit; resize: none; min-height: 60px; color: var(--ink); line-height: 1.5; }
+  .composer-textarea:focus { outline: none; }
+  .composer-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 6px 10px; border-top: 1px solid var(--line-soft); }
+  .composer-actions { display: flex; gap: 2px; align-items: center; }
+  .composer-btn { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; color: var(--ink-muted); cursor: pointer; background: transparent; border: none; transition: all 0.15s; }
+  .composer-btn:hover { background: var(--paper-warm); color: var(--ink); }
+  .composer-pending { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px 8px; }
+  .mention-popover { position: absolute; background: var(--paper-card); border: 1px solid var(--line); border-radius: 6px; box-shadow: 0 8px 24px rgba(26,29,35,0.12); min-width: 240px; max-height: 240px; overflow-y: auto; z-index: 110; padding: 4px; }
+  .mention-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+  .mention-row.active, .mention-row:hover { background: var(--paper-warm); }
+  .mention-avatar { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: 600; flex-shrink: 0; }
+  .event-row { display: flex; gap: 10px; padding: 9px 0; font-size: 12.5px; color: var(--ink-muted); align-items: flex-start; line-height: 1.45; }
+  .event-row + .event-row { border-top: 1px solid var(--line-soft); }
+  .event-icon { width: 22px; height: 22px; border-radius: 50%; background: var(--paper-warm); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--ink-soft); }
+  .event-text strong { color: var(--ink); font-weight: 600; }
+  .event-time { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-muted); margin-left: 6px; }
   /* searchable combobox */
   .combo { position: relative; }
   .combo-input { width: 100%; background: white; border: 1px solid var(--line); border-radius: 4px; padding: 8px 32px 8px 12px; font-size: 13.5px; font-family: 'Inter Tight', sans-serif; cursor: pointer; }
@@ -147,9 +201,9 @@
 </style>
 </head>
 <body class="relative-content">
-
+ 
 <div id="toast" class="toast"></div>
-
+ 
 <!-- ============ AUTH GATE ============ -->
 <div id="auth-screen" style="display:none">
   <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; position:relative; z-index:1;">
@@ -159,7 +213,7 @@
         <h1 class="font-display" style="font-size:28px; letter-spacing:-0.02em; line-height:1.1; margin-bottom:6px">Development Management Services</h1>
         <div class="text-[12px] text-muted uppercase tracking-[0.15em]">Portfolio Operations</div>
       </div>
-
+ 
       <div class="card" style="padding:28px">
         <div id="auth-signin-form">
           <div class="font-display text-[20px] tracking-tight mb-1">Sign in</div>
@@ -180,7 +234,7 @@
             <button class="text-[13px] text-brass-dark font-medium hover:underline" onclick="toggleAuthMode('signup')">Set up your account →</button>
           </div>
         </div>
-
+ 
         <div id="auth-signup-form" style="display:none">
           <div class="font-display text-[20px] tracking-tight mb-1">Set up account</div>
           <div class="text-[12.5px] text-muted mb-5">Use the email address that received your DMS invitation.</div>
@@ -199,17 +253,17 @@
             <button class="text-[13px] text-brass-dark font-medium hover:underline" onclick="toggleAuthMode('signin')">← Back to sign in</button>
           </div>
         </div>
-
+ 
         <div id="auth-error" class="mt-3 p-2.5 rounded text-[12.5px]" style="display:none; background:rgba(179,86,55,0.08); border:1px solid rgba(179,86,55,0.3); color:var(--rust)"></div>
       </div>
-
+ 
       <div class="text-center text-[11px] text-muted mt-5">
         DMS · Surge Spaces · Howell, NJ
       </div>
     </div>
   </div>
 </div>
-
+ 
 <!-- ============ MAIN APP (shown after sign-in) ============ -->
 <div id="app-shell" style="display:none">
 <div class="flex min-h-screen">
@@ -271,7 +325,7 @@
       </div>
     </div>
   </aside>
-
+ 
   <!-- MAIN -->
   <main class="flex-1 min-w-0 flex flex-col">
     <header class="h-14 border-b border-line bg-paper-card flex items-center px-6 gap-4 flex-shrink-0">
@@ -286,7 +340,7 @@
         <button class="btn-icon" title="Help"><i data-lucide="help-circle" class="w-4 h-4"></i></button>
       </div>
     </header>
-
+ 
     <!-- PORTFOLIO -->
     <div id="view-portfolio" class="view active flex-1 overflow-y-auto">
       <div class="px-8 py-8 max-w-[1500px]">
@@ -301,15 +355,15 @@
             <button class="btn-primary" onclick="openPropertyModal()"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Property</button>
           </div>
         </div>
-
+ 
         <div id="kpi-strip" class="grid grid-cols-5 gap-px bg-line border border-line rounded mb-8 overflow-hidden fade-up fade-up-1"></div>
-
+ 
         <div class="flex items-center justify-between mb-5 fade-up fade-up-2">
           <div id="type-filters" class="flex items-center gap-2 flex-wrap"></div>
         </div>
-
+ 
         <div id="property-grid" class="grid grid-cols-3 gap-5 fade-up fade-up-3"></div>
-
+ 
         <div class="grid grid-cols-3 gap-5 mt-10 fade-up fade-up-4">
           <div class="card p-5 col-span-2">
             <div class="flex items-center justify-between mb-4">
@@ -328,11 +382,11 @@
         </div>
       </div>
     </div>
-
+ 
     <div id="view-property" class="view flex-1 overflow-y-auto">
       <div id="property-detail-content"></div>
     </div>
-
+ 
     <div id="view-tasks" class="view flex-1 overflow-y-auto">
       <div class="px-8 py-8 max-w-[1500px]">
         <div class="flex items-end justify-between mb-6 fade-up">
@@ -348,7 +402,7 @@
         <div class="grid grid-cols-4 gap-4 fade-up fade-up-1" id="kanban-board"></div>
       </div>
     </div>
-
+ 
     <div id="view-tenants" class="view flex-1 overflow-y-auto">
       <div class="px-8 py-8 max-w-[1500px]">
         <div class="flex items-end justify-between mb-6 fade-up">
@@ -371,7 +425,7 @@
         </div>
       </div>
     </div>
-
+ 
     <div id="view-leases" class="view flex-1 overflow-y-auto p-8">
       <div class="max-w-[1500px]">
         <div class="mb-6 fade-up">
@@ -389,12 +443,12 @@
         </div>
       </div>
     </div>
-
+ 
     <div id="view-maintenance" class="view flex-1 overflow-y-auto p-8">
       <h1 class="font-display text-[36px] tracking-tight">Maintenance</h1>
       <p class="text-muted mt-2">Work orders and vendor management.</p>
     </div>
-
+ 
     <div id="view-team" class="view flex-1 overflow-y-auto p-8">
       <div class="max-w-[1500px]">
         <div class="flex items-end justify-between mb-6 fade-up">
@@ -407,7 +461,7 @@
             <button class="btn-primary" onclick="openInviteModal()"><i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Invite User</button>
           </div>
         </div>
-
+ 
         <div class="grid grid-cols-2 gap-6 fade-up fade-up-1">
           <div>
             <h3 class="font-display text-[18px] tracking-tight mb-3">Members</h3>
@@ -433,71 +487,99 @@
   </main>
 </div>
 </div><!-- /app-shell -->
-
+ 
 <!-- ============ MODALS ============ -->
-
-<!-- Task modal -->
-<div id="task-modal" class="modal-backdrop">
-  <div class="modal-content">
-    <div class="flex items-center justify-between mb-4">
-      <h3 id="task-modal-title" class="font-display text-[22px] tracking-tight">New Task</h3>
-      <button class="btn-icon" onclick="closeModal('task-modal')"><i data-lucide="x" class="w-4 h-4"></i></button>
-    </div>
-    <input type="hidden" id="task-edit-id">
-    <div class="space-y-3">
-      <div>
-        <div class="kpi-label mb-1.5">Title</div>
-        <input id="task-title" class="input-field" placeholder="What needs to be done?">
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <div class="kpi-label mb-1.5">Property</div>
-          <div id="task-property-combo"></div>
-        </div>
-        <div>
-          <div class="kpi-label mb-1.5">Priority</div>
-          <select id="task-priority" class="input-field">
-            <option value="low">Low</option>
-            <option value="medium" selected>Medium</option>
-            <option value="high">High</option>
-          </select>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <div class="kpi-label mb-1.5">Category</div>
-          <input id="task-category" class="input-field" placeholder="e.g. Maintenance">
-        </div>
-        <div>
-          <div class="kpi-label mb-1.5">Due Date</div>
-          <input id="task-due" type="date" class="input-field">
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <div class="kpi-label mb-1.5">Assignee</div>
-          <div id="task-assignee-combo"></div>
-        </div>
-        <div>
-          <div class="kpi-label mb-1.5">Status</div>
-          <select id="task-status" class="input-field">
-            <option value="open">Open</option>
-            <option value="in_progress">In Progress</option>
-            <option value="done">Done</option>
-          </select>
-        </div>
+ 
+<!-- Task side panel (Asana-style drawer) -->
+<div id="task-panel-backdrop" class="panel-backdrop" onclick="TaskPanel.close()"></div>
+<div id="task-panel" class="side-panel" aria-hidden="true">
+  <input type="hidden" id="tp-task-id">
+  <div class="panel-head">
+    <div class="flex items-center justify-between">
+      <div id="tp-status-pill" class="pill pill-scheduled"><span class="pill-dot" style="background:var(--ink-muted)"></span><span id="tp-status-label">Open</span></div>
+      <div class="flex items-center gap-1">
+        <button id="tp-complete-btn" class="btn-icon" onclick="TaskPanel.toggleComplete()" title="Mark complete"><i data-lucide="check" class="w-4 h-4"></i></button>
+        <button id="tp-delete-btn" class="btn-icon" onclick="TaskPanel.delete()" title="Delete task" style="color:var(--rust)"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        <button class="btn-icon" onclick="TaskPanel.close()" title="Close"><i data-lucide="x" class="w-4 h-4"></i></button>
       </div>
     </div>
-    <div class="flex justify-between gap-2 mt-5 pt-4 border-t border-line">
-      <button id="task-delete-btn" class="btn-danger" style="display:none" onclick="deleteTask()"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete</button>
-      <div class="flex gap-2 ml-auto">
-        <button class="btn-secondary" onclick="closeModal('task-modal')">Cancel</button>
-        <button class="btn-primary" onclick="saveTask()"><i data-lucide="check" class="w-3.5 h-3.5"></i> Save</button>
+    <input id="tp-title" class="panel-title-input" placeholder="Task title">
+  </div>
+ 
+  <div class="panel-tabs">
+    <div class="panel-tab active" data-tab="updates" onclick="TaskPanel.switchTab('updates')">Updates<span class="count" id="tp-tab-updates-count"></span></div>
+    <div class="panel-tab" data-tab="details" onclick="TaskPanel.switchTab('details')">Details</div>
+    <div class="panel-tab" data-tab="activity" onclick="TaskPanel.switchTab('activity')">Activity<span class="count" id="tp-tab-activity-count"></span></div>
+  </div>
+ 
+  <div class="panel-body" id="tp-body-updates">
+    <div id="tp-updates-list">
+      <div class="empty-state"><i data-lucide="message-square" class="w-7 h-7 mb-2 text-muted"></i><div class="text-[12.5px]">No updates yet. Be the first to post.</div></div>
+    </div>
+  </div>
+ 
+  <div class="panel-body" id="tp-body-details" style="display:none">
+    <div class="panel-meta-row">
+      <div class="panel-meta-label">Property</div>
+      <div id="tp-property-combo"></div>
+    </div>
+    <div class="panel-meta-row">
+      <div class="panel-meta-label">Assignee</div>
+      <div id="tp-assignee-combo"></div>
+    </div>
+    <div class="panel-meta-row">
+      <div class="panel-meta-label">Due Date</div>
+      <input id="tp-due" type="date" class="panel-inline-select">
+    </div>
+    <div class="panel-meta-row">
+      <div class="panel-meta-label">Priority</div>
+      <select id="tp-priority" class="panel-inline-select">
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+    </div>
+    <div class="panel-meta-row">
+      <div class="panel-meta-label">Status</div>
+      <select id="tp-status" class="panel-inline-select">
+        <option value="open">Open</option>
+        <option value="in_progress">In Progress</option>
+        <option value="done">Done</option>
+      </select>
+    </div>
+    <div class="panel-meta-row">
+      <div class="panel-meta-label">Category</div>
+      <input id="tp-category" class="panel-inline-select" placeholder="e.g. Maintenance">
+    </div>
+    <div class="panel-meta-row">
+      <div class="panel-meta-label">Created</div>
+      <div id="tp-created" class="text-[12px] text-muted font-mono"></div>
+    </div>
+  </div>
+ 
+  <div class="panel-body" id="tp-body-activity" style="display:none">
+    <div id="tp-events-list">
+      <div class="empty-state"><i data-lucide="activity" class="w-7 h-7 mb-2 text-muted"></i><div class="text-[12.5px]">No activity yet.</div></div>
+    </div>
+  </div>
+ 
+  <div class="panel-foot" id="tp-composer-wrap">
+    <div class="composer" style="position:relative">
+      <textarea id="tp-composer" class="composer-textarea" placeholder="Post an update… (use @ to mention)" rows="2"></textarea>
+      <div id="tp-pending-attachments" class="composer-pending" style="display:none"></div>
+      <div class="composer-bar">
+        <div class="composer-actions">
+          <button class="composer-btn" onclick="TaskPanel.openFilePicker()" title="Attach file"><i data-lucide="paperclip" class="w-4 h-4"></i></button>
+          <button class="composer-btn" onclick="TaskPanel.openMentionMenu()" title="Mention someone"><i data-lucide="at-sign" class="w-4 h-4"></i></button>
+          <input type="file" id="tp-file-input" multiple style="display:none">
+        </div>
+        <button id="tp-post-btn" class="btn-primary" onclick="TaskPanel.postUpdate()" style="padding:5px 12px;font-size:12.5px"><i data-lucide="send-horizontal" class="w-3.5 h-3.5"></i> Post</button>
       </div>
+      <div id="tp-mention-popover" class="mention-popover" style="display:none"></div>
     </div>
   </div>
 </div>
-
+ 
 <!-- Tenant modal (directory-only add/edit) -->
 <div id="tenant-modal" class="modal-backdrop">
   <div class="modal-content">
@@ -536,7 +618,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- Sign Lease modal — the actual "add tenant to unit" flow -->
 <div id="signlease-modal" class="modal-backdrop">
   <div class="modal-content" style="max-width:560px">
@@ -545,20 +627,20 @@
       <button class="btn-icon" onclick="closeModal('signlease-modal')"><i data-lucide="x" class="w-4 h-4"></i></button>
     </div>
     <div class="text-[12px] text-muted mb-5">Place a tenant in a vacant unit. Creates the lease and marks the unit occupied.</div>
-
+ 
     <div class="space-y-3">
       <div>
         <div class="kpi-label mb-1.5">Property &amp; Unit <span class="text-rust">*</span></div>
         <div id="sl-unit-combo"></div>
         <div id="sl-unit-info" class="text-[11px] text-muted mt-1"></div>
       </div>
-
+ 
       <div>
         <div class="kpi-label mb-1.5">Tenant <span class="text-rust">*</span></div>
         <div id="sl-tenant-combo"></div>
         <div class="text-[11px] text-muted mt-1">Type to search existing tenants, or type a new name to create one.</div>
       </div>
-
+ 
       <!-- new tenant fields appear conditionally -->
       <div id="sl-new-tenant-fields" class="card p-3 space-y-3" style="background:var(--paper-warm); display:none">
         <div class="text-[11px] uppercase tracking-[0.1em] font-semibold text-muted">New Tenant Details</div>
@@ -581,9 +663,9 @@
           <input id="sl-new-email" type="email" class="input-field" placeholder="email@example.com">
         </div>
       </div>
-
+ 
       <div class="label-divider"><span class="label-divider-text">Lease Terms</span></div>
-
+ 
       <div class="grid grid-cols-2 gap-3">
         <div>
           <div class="kpi-label mb-1.5">Start Date <span class="text-rust">*</span></div>
@@ -612,14 +694,14 @@
         </div>
       </div>
     </div>
-
+ 
     <div class="flex justify-end gap-2 mt-5 pt-4 border-t border-line">
       <button class="btn-secondary" onclick="closeModal('signlease-modal')">Cancel</button>
       <button class="btn-primary" onclick="signLease()"><i data-lucide="file-signature" class="w-3.5 h-3.5"></i> Sign Lease</button>
     </div>
   </div>
 </div>
-
+ 
 <!-- Lease modal -->
 <div id="lease-modal" class="modal-backdrop">
   <div class="modal-content">
@@ -671,7 +753,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- Access code modal -->
 <div id="code-modal" class="modal-backdrop">
   <div class="modal-content">
@@ -708,7 +790,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- Property modal (multi-step) -->
 <div id="property-modal" class="modal-backdrop">
   <div class="modal-content" style="max-width: 640px;">
@@ -718,7 +800,7 @@
     </div>
     <div id="property-modal-subtitle" class="text-[12px] text-muted mb-5">A new property added to the DMS portfolio.</div>
     <input type="hidden" id="property-edit-id">
-
+ 
     <!-- Step indicator -->
     <div class="flex items-center gap-2 mb-6 pb-4 border-b border-line-soft">
       <div id="step-pip-1" class="flex items-center gap-2 flex-1">
@@ -736,7 +818,7 @@
         <div class="text-[12px] font-medium text-muted">Image & Review</div>
       </div>
     </div>
-
+ 
     <!-- STEP 1: PROPERTY DETAILS -->
     <div id="property-step-1" class="property-step">
       <div class="space-y-3">
@@ -818,33 +900,33 @@
         </div>
       </div>
     </div>
-
+ 
     <!-- STEP 2: UNITS -->
     <div id="property-step-2" class="property-step" style="display:none">
       <div class="mb-4 p-3 rounded text-[12.5px]" style="background:rgba(168,128,74,0.08); border:1px solid var(--brass-soft); color:var(--ink-soft)">
         <div class="font-medium mb-1">How is this property divided?</div>
         <div class="text-muted">For single-tenant properties (charter school, assisted living, single-tenant warehouse) leave the default one unit. For multi-tenant properties, add a row per unit.</div>
       </div>
-
+ 
       <div class="flex items-center justify-between mb-3">
         <div class="text-[13px] font-medium">Units</div>
         <button class="btn-secondary" onclick="addUnitRow()"><i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Unit</button>
       </div>
-
+ 
       <div id="unit-rows" class="space-y-2 max-h-[380px] overflow-y-auto pr-1"></div>
-
+ 
       <div class="mt-4 flex gap-2">
         <button class="btn-secondary text-[12px]" onclick="addBulkUnits(5)">+ 5 units</button>
         <button class="btn-secondary text-[12px]" onclick="addBulkUnits(10)">+ 10 units</button>
         <button class="btn-secondary text-[12px]" onclick="addBulkUnits(25)">+ 25 units</button>
       </div>
-
+ 
       <div class="mt-4 pt-3 border-t border-line-soft flex justify-between text-[12px] text-muted">
         <span>Unit count: <span id="unit-count" class="font-mono text-ink-soft">1</span></span>
         <span>Total unit sqft: <span id="unit-total-sqft" class="font-mono text-ink-soft">0</span></span>
       </div>
     </div>
-
+ 
     <!-- STEP 3: IMAGE & REVIEW -->
     <div id="property-step-3" class="property-step" style="display:none">
       <div class="mb-4">
@@ -863,12 +945,12 @@
         </div>
         <button id="image-clear-btn" class="text-[11px] text-rust hover:underline mt-2" style="display:none" onclick="clearImage()">Remove image</button>
       </div>
-
+ 
       <div class="label-divider"><span class="label-divider-text">Review</span></div>
-
+ 
       <div id="property-review" class="space-y-2 text-[13px]"></div>
     </div>
-
+ 
     <div class="flex justify-between gap-2 mt-5 pt-4 border-t border-line">
       <div class="flex gap-2">
         <button id="prop-prev-btn" class="btn-secondary" onclick="propertyStepPrev()" style="display:none"><i data-lucide="chevron-left" class="w-3.5 h-3.5"></i> Back</button>
@@ -882,7 +964,7 @@
     </div>
   </div>
 </div>
-
+ 
 <!-- Invite User modal -->
 <div id="invite-modal" class="modal-backdrop">
   <div class="modal-content">
@@ -916,7 +998,7 @@
     </div>
   </div>
 </div>
-
+ 
 <script>
 // ============== SUPABASE ==============
 const SUPABASE_URL = 'https://wgrlbozwnfhkomwhltpy.supabase.co';
@@ -924,7 +1006,7 @@ const SUPABASE_KEY = 'sb_publishable_i7CgJ23ZS0naBMUA6zOGRg_gFSI2z2j';
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
   realtime: { params: { eventsPerSecond: 10 } }
 });
-
+ 
 // ============== STATE ==============
 const state = {
   properties: [], units: [], leases: [], tenants: [], tasks: [], activity: [],
@@ -935,7 +1017,7 @@ const state = {
   propNavExpanded: false,
   lastSelfMutation: new Map(), // to suppress own-edit notifications
 };
-
+ 
 // ============== UTILITIES ==============
 function toast(msg, opts = {}) {
   const t = document.getElementById('toast');
@@ -978,38 +1060,38 @@ function isSelfEdit(table, id) {
   const ts = state.lastSelfMutation.get(key);
   return ts && (Date.now() - ts < 2500);
 }
-
+ 
 // ============== SEARCHABLE COMBOBOX ==============
 // Reusable searchable dropdown. Replaces a <select> with type-to-filter UX.
 // Mount with: Combo.mount(elementId, { options, value, onChange, placeholder, allowCreate, groupBy })
 // options: [{ value, label, sub?, group? }] OR for grouped: pass groupBy fn
 const Combo = (() => {
   const instances = new Map();
-
+ 
   function mount(hostId, config) {
     const host = document.getElementById(hostId);
     if (!host) return;
     // wipe & rebuild
     host.innerHTML = '';
     host.classList.add('combo');
-
+ 
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'combo-input';
     input.setAttribute('autocomplete', 'off');
     input.placeholder = config.placeholder || 'Type to search…';
-
+ 
     const chevron = document.createElement('i');
     chevron.setAttribute('data-lucide', 'chevron-down');
     chevron.className = 'combo-chevron w-4 h-4';
-
+ 
     const panel = document.createElement('div');
     panel.className = 'combo-panel';
-
+ 
     host.appendChild(input);
     host.appendChild(chevron);
     host.appendChild(panel);
-
+ 
     const state = {
       options: config.options || [],
       value: config.value ?? null,
@@ -1022,7 +1104,7 @@ const Combo = (() => {
       onCreate: config.onCreate || null,
       groupBy: config.groupBy || null,
     };
-
+ 
     function setValue(val) {
       state.value = val;
       const opt = state.options.find(o => o.value === val);
@@ -1030,7 +1112,7 @@ const Combo = (() => {
       close();
       state.onChange(val);
     }
-
+ 
     function open_() {
       state.open = true;
       panel.classList.add('open');
@@ -1044,19 +1126,19 @@ const Combo = (() => {
       const opt = state.options.find(o => o.value === state.value);
       input.value = opt ? opt.label : '';
     }
-
+ 
     function fuzzy(s, q) {
       if (!q) return true;
       return s.toLowerCase().includes(q.toLowerCase());
     }
-
+ 
     function highlight(text, q) {
       if (!q) return text;
       const idx = text.toLowerCase().indexOf(q.toLowerCase());
       if (idx === -1) return text;
       return text.slice(0, idx) + '<span class="match">' + text.slice(idx, idx + q.length) + '</span>' + text.slice(idx + q.length);
     }
-
+ 
     function render() {
       const q = state.query;
       let matches = state.options.filter(o => fuzzy(o.label, q) || (o.sub && fuzzy(o.sub, q)));
@@ -1065,7 +1147,7 @@ const Combo = (() => {
       if (state.allowCreate && q && !state.options.find(o => o.label.toLowerCase() === q.toLowerCase())) {
         items.push({ value: '__create__', label: `${state.createLabel}: "${q}"`, isCreate: true });
       }
-
+ 
       if (state.groupBy) {
         const groups = {};
         matches.forEach(m => {
@@ -1111,7 +1193,7 @@ const Combo = (() => {
           }).join('');
         }
       }
-
+ 
       // wire option clicks
       panel.querySelectorAll('.combo-option').forEach(el => {
         el.addEventListener('mousedown', e => {
@@ -1131,14 +1213,14 @@ const Combo = (() => {
           panel.querySelectorAll('.combo-option').forEach((e, i) => e.classList.toggle('highlighted', i === state.highlighted));
         });
       });
-
+ 
       // ensure highlighted item is in view
       const hl = panel.querySelector('.combo-option.highlighted');
       if (hl) hl.scrollIntoView({ block: 'nearest' });
-
+ 
       lucide.createIcons();
     }
-
+ 
     input.addEventListener('focus', open_);
     input.addEventListener('click', open_);
     input.addEventListener('input', e => {
@@ -1171,11 +1253,11 @@ const Combo = (() => {
     input.addEventListener('blur', () => {
       setTimeout(() => { if (state.open) close(); }, 100);
     });
-
+ 
     // initial render
     const initOpt = state.options.find(o => o.value === state.value);
     if (initOpt) input.value = initOpt.label;
-
+ 
     const api = {
       setOptions(opts) { state.options = opts; if (state.open) render(); },
       setValue,
@@ -1186,12 +1268,12 @@ const Combo = (() => {
     instances.set(hostId, api);
     return api;
   }
-
+ 
   function get(hostId) { return instances.get(hostId); }
-
+ 
   return { mount, get };
 })();
-
+ 
 // ============== LOAD ==============
 async function loadAllData() {
   try {
@@ -1224,7 +1306,7 @@ async function loadAllData() {
     toast('Could not connect to database', { tone: 'error' });
   }
 }
-
+ 
 // ============== REALTIME ==============
 function setupRealtime() {
   const channel = sb.channel('dms-portfolio')
@@ -1235,6 +1317,9 @@ function setupRealtime() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'units' }, (p) => handleRealtimeChange('units', p))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'access_codes' }, (p) => handleRealtimeChange('accessCodes', p))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'activity_log' }, (p) => handleRealtimeChange('activity', p))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'task_updates' }, (p) => TaskPanel.applyRealtime('task_updates', p))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'task_events' }, (p) => TaskPanel.applyRealtime('task_events', p))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'task_attachments' }, (p) => TaskPanel.applyRealtime('task_attachments', p))
     .subscribe((status) => {
       const dot = document.getElementById('conn-dot');
       const label = document.getElementById('conn-status');
@@ -1247,13 +1332,13 @@ function setupRealtime() {
       }
     });
 }
-
+ 
 function handleRealtimeChange(stateKey, payload) {
   const { eventType, new: newRec, old: oldRec } = payload;
   const table = payload.table;
   const id = (newRec && newRec.id) || (oldRec && oldRec.id);
   const isOwn = isSelfEdit(table, id);
-
+ 
   // Special handling for properties: filter out archived
   if (stateKey === 'properties') {
     let arr = state.properties;
@@ -1279,7 +1364,7 @@ function handleRealtimeChange(stateKey, payload) {
     }
     return;
   }
-
+ 
   // mutate state in place
   let arr = state[stateKey];
   if (eventType === 'INSERT') arr.unshift(newRec);
@@ -1289,17 +1374,17 @@ function handleRealtimeChange(stateKey, payload) {
   } else if (eventType === 'DELETE') {
     state[stateKey] = arr.filter(x => x.id !== oldRec.id);
   }
-
+ 
   // re-render the affected surfaces
   rerenderAll();
-
+ 
   if (!isOwn) {
     const labels = { properties:'Property', tasks:'Task', tenants:'Tenant', leases:'Lease', units:'Unit', accessCodes:'Access code', activity:'Activity' };
     const action = eventType === 'INSERT' ? 'added' : eventType === 'UPDATE' ? 'updated' : 'removed';
     toast(`${labels[stateKey] || stateKey} ${action} elsewhere`, { tone: 'remote' });
   }
 }
-
+ 
 function rerenderAll() {
   renderKpiStrip();
   renderPropertyGrid();
@@ -1314,7 +1399,7 @@ function rerenderAll() {
     renderPropertyDetail(state.currentPropertyId, state.currentPropertyTab);
   }
 }
-
+ 
 // ============== DERIVED ==============
 function propertyStats(propertyId) {
   const units = state.units.filter(u => u.property_id === propertyId);
@@ -1341,7 +1426,7 @@ function portfolioKpis() {
   const expiringLeases = state.leases.filter(l => l.status === 'active' && l.end_date && new Date(l.end_date) <= ninety && new Date(l.end_date) >= today).length;
   return { propCount, totalSqft, occupancy, tenantCount, openTasks, overdue, dueThisWeek, expiringLeases };
 }
-
+ 
 // ============== RENDERERS ==============
 function renderKpiStrip() {
   const k = portfolioKpis();
@@ -1381,7 +1466,7 @@ function renderKpiStrip() {
   document.getElementById('nav-task-count').textContent = k.overdue;
   lucide.createIcons();
 }
-
+ 
 function renderTypeFilters() {
   const counts = {};
   state.properties.forEach(p => { counts[p.property_type] = (counts[p.property_type]||0)+1; });
@@ -1391,7 +1476,7 @@ function renderTypeFilters() {
     ${types.map(t => `<button class="btn-secondary ${state.typeFilter===t?'text-ink':''}" ${state.typeFilter===t?'style="background:var(--paper-warm);border-color:var(--ink-soft);"':''} onclick="setTypeFilter('${t.replace(/'/g,"\\'")}')">${t} <span class="text-muted ml-1">${counts[t]}</span></button>`).join('')}`;
 }
 function setTypeFilter(t) { state.typeFilter = t; renderTypeFilters(); renderPropertyGrid(); }
-
+ 
 function renderPropertyGrid() {
   const grid = document.getElementById('property-grid');
   const filtered = state.typeFilter === 'all' ? state.properties : state.properties.filter(p => p.property_type === state.typeFilter);
@@ -1425,26 +1510,26 @@ function renderPropertyGrid() {
   }).join('');
   lucide.createIcons();
 }
-
+ 
 function renderPropertyNav() {
   const list = document.getElementById('property-nav-list');
   const props = state.properties;
   const limit = state.propNavExpanded ? props.length : 5;
   const shown = props.slice(0, limit);
   const remaining = props.length - limit;
-
+ 
   let html = shown.map(p => `
     <div class="nav-item" data-prop-nav="${p.id}" onclick="showProperty('${p.id}')">
       <i data-lucide="building" class="w-3.5 h-3.5"></i>
       <span class="truncate">${p.name}</span>
     </div>`).join('');
-
+ 
   if (remaining > 0) {
     html += `<div class="nav-item text-muted text-[12px]" onclick="togglePropNav()" style="padding-left:30px">+ ${remaining} more</div>`;
   } else if (state.propNavExpanded && props.length > 5) {
     html += `<div class="nav-item text-muted text-[12px]" onclick="togglePropNav()" style="padding-left:30px">Show fewer</div>`;
   }
-
+ 
   list.innerHTML = html;
   // re-apply active state if we're currently viewing a property
   if (state.currentPropertyId) {
@@ -1453,12 +1538,12 @@ function renderPropertyNav() {
   }
   lucide.createIcons();
 }
-
+ 
 function togglePropNav() {
   state.propNavExpanded = !state.propNavExpanded;
   renderPropertyNav();
 }
-
+ 
 function renderActivity() {
   const feed = document.getElementById('activity-feed');
   const fmtTime = (ts) => {
@@ -1484,7 +1569,7 @@ function renderActivity() {
   }).join('');
   lucide.createIcons();
 }
-
+ 
 function renderUrgent() {
   const urgent = state.tasks
     .filter(t => t.status !== 'done' && (daysFromNow(t.due_date) < 0 || t.priority === 'high'))
@@ -1503,7 +1588,7 @@ function renderUrgent() {
       </div>`;
   }).join('') || '<div class="text-[12px] text-muted italic">Nothing urgent. Nice.</div>';
 }
-
+ 
 function renderTenantsTable() {
   const rows = state.units.map(u => {
     const lease = state.leases.find(l => l.unit_id === u.id && l.status === 'active');
@@ -1513,9 +1598,9 @@ function renderTenantsTable() {
     if (lease && lease.end_date && daysFromNow(lease.end_date) <= 90 && daysFromNow(lease.end_date) > 0) status = 'notice';
     return { unitId: u.id, tenantId: tenant?.id, leaseId: lease?.id, name: tenant?.name || 'VACANT', property: prop?.name || '', unit: u.unit_number, sqft: u.sqft, monthly: lease?.monthly_rent || 0, ends: lease?.end_date ? new Date(lease.end_date).toLocaleDateString('en-US',{month:'short',year:'numeric'}) : '—', status };
   }).sort((a,b) => a.property.localeCompare(b.property));
-
+ 
   document.getElementById('tenants-page-subtitle').textContent = `${rows.filter(r => r.status !== 'vacant').length} active across ${state.properties.length} properties`;
-
+ 
   document.getElementById('tenants-table').innerHTML = rows.map(t => {
     const statusPill = t.status === 'occupied' ? '<span class="pill pill-occupied"><span class="pill-dot"></span>Occupied</span>'
       : t.status === 'vacant' ? '<span class="pill pill-vacant"><span class="pill-dot"></span>Vacant</span>'
@@ -1532,7 +1617,7 @@ function renderTenantsTable() {
     </tr>`;
   }).join('');
 }
-
+ 
 function renderLeasesTable() {
   const rows = state.leases.map(l => {
     const tenant = state.tenants.find(t => t.id === l.tenant_id);
@@ -1540,9 +1625,9 @@ function renderLeasesTable() {
     const prop = state.properties.find(p => p.id === l.property_id);
     return { id: l.id, tenant: tenant?.name || '—', loc: `${prop?.name || ''} · ${unit?.unit_number || ''}`, start: l.start_date, end: l.end_date, monthly: l.monthly_rent, status: l.status };
   }).sort((a,b) => (a.end || '9999').localeCompare(b.end || '9999'));
-
+ 
   document.getElementById('leases-subtitle').textContent = `${state.leases.length} leases · ${state.leases.filter(l=>l.status==='active').length} active`;
-
+ 
   document.getElementById('leases-table').innerHTML = rows.map(r => {
     const days = daysFromNow(r.end);
     const endColor = days !== null && days < 90 && days >= 0 ? 'text-brass-dark font-medium' : '';
@@ -1560,7 +1645,7 @@ function renderLeasesTable() {
     </tr>`;
   }).join('');
 }
-
+ 
 function renderKanban() {
   const open = state.tasks.filter(t => t.status !== 'done');
   const done = state.tasks.filter(t => t.status === 'done');
@@ -1608,7 +1693,7 @@ function renderKanban() {
       </div>
     </div>`).join('');
 }
-
+ 
 // ============== PROPERTY DETAIL ==============
 function renderPropertyDetail(id, activeTab = 'overview') {
   const p = state.properties.find(x => x.id === id);
@@ -1617,7 +1702,7 @@ function renderPropertyDetail(id, activeTab = 'overview') {
   state.currentPropertyTab = activeTab;
   const s = propertyStats(id);
   const units = state.units.filter(u => u.property_id === id);
-
+ 
   document.getElementById('property-detail-content').innerHTML = `
     <div class="relative h-[280px] overflow-hidden border-b border-line">
       <div style="background-image:url('${p.hero_image_url || ''}');background-size:cover;background-position:center;position:absolute;inset:0;background-color:var(--paper-warm)"></div>
@@ -1643,7 +1728,7 @@ function renderPropertyDetail(id, activeTab = 'overview') {
         </div>
       </div>
     </div>
-
+ 
     <div class="px-8 py-6 border-b border-line bg-paper-card">
       <div class="flex items-start justify-between gap-6 max-w-[1500px]">
         <div class="grid grid-cols-6 gap-8 flex-1">
@@ -1657,7 +1742,7 @@ function renderPropertyDetail(id, activeTab = 'overview') {
         <button class="btn-secondary flex-shrink-0" onclick="openPropertyModal('${p.id}')"><i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit Property</button>
       </div>
     </div>
-
+ 
     <div class="px-8 border-b border-line bg-paper-card sticky top-0 z-20">
       <div class="flex">
         ${['overview','tasks','units','access','docs','photos','maintenance'].map(t => `
@@ -1667,7 +1752,7 @@ function renderPropertyDetail(id, activeTab = 'overview') {
           </div>`).join('')}
       </div>
     </div>
-
+ 
     <div class="px-8 py-7 max-w-[1500px]">
       ${activeTab === 'overview' ? renderTabOverview(p, s) :
         activeTab === 'tasks' ? renderTabTasks(p) :
@@ -1680,11 +1765,11 @@ function renderPropertyDetail(id, activeTab = 'overview') {
   `;
   lucide.createIcons();
 }
-
+ 
 function switchPropertyTab(name) {
   renderPropertyDetail(state.currentPropertyId, name);
 }
-
+ 
 function renderTabOverview(p, s) {
   const propContacts = state.contacts.filter(c => c.property_id === p.id);
   const propActivity = state.activity.filter(a => a.property_id === p.id).slice(0, 4);
@@ -1734,7 +1819,7 @@ function renderTabOverview(p, s) {
       </div>
     </div>`;
 }
-
+ 
 function renderTabTasks(p) {
   const tasks = state.tasks.filter(t => t.property_id === p.id);
   return `
@@ -1767,7 +1852,7 @@ function renderTabTasks(p) {
       </table>
     </div>`;
 }
-
+ 
 function renderTabUnits(p, units) {
   const rows = units.map(u => {
     const lease = state.leases.find(l => l.unit_id === u.id && l.status === 'active');
@@ -1812,7 +1897,7 @@ function renderTabUnits(p, units) {
       </table>
     </div>`;
 }
-
+ 
 function renderTabAccess(p) {
   const codes = state.accessCodes.filter(c => c.property_id === p.id);
   return `
@@ -1840,7 +1925,7 @@ function renderTabAccess(p) {
       }
     </div>`;
 }
-
+ 
 function renderTabDocs(p) {
   const docs = state.documents.filter(d => d.property_id === p.id);
   return `
@@ -1868,7 +1953,7 @@ function renderTabDocs(p) {
       </table>
     </div>`;
 }
-
+ 
 function renderTabPhotos(p) {
   const photos = state.photos.filter(ph => ph.property_id === p.id);
   const grouped = {};
@@ -1880,7 +1965,7 @@ function renderTabPhotos(p) {
         ${list.map(ph => `<div class="photo-tile" style="background-image:url('${ph.image_url}')" title="${ph.caption || ''}"></div>`).join('')}
       </div>`).join('');
 }
-
+ 
 function renderTabMaintenance(p) {
   const wos = state.workOrders.filter(w => w.property_id === p.id);
   const open = wos.filter(w => w.status !== 'complete').length;
@@ -1914,99 +1999,672 @@ function renderTabMaintenance(p) {
       </table>
     </div>`;
 }
-
+ 
 // ============== EDIT MODALS ==============
 function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-
-// ---- TASK ----
-function openTaskModal(taskId = null, presetProp = null) {
-  // Build property options for combobox
-  const propOptions = [
-    { value: '', label: 'Portfolio-wide', sub: 'No specific property' },
-    ...state.properties.map(p => ({ value: p.id, label: p.name, sub: `${p.property_type} · ${p.city}, ${p.state}` })),
-  ];
-
-  // Build assignee options from real team members
-  const assigneeOptions = [
-    { value: '', label: 'Unassigned' },
-    ...state.profiles.map(p => ({
-      value: p.id,
-      label: p.full_name || p.email,
-      sub: `${p.role.charAt(0).toUpperCase() + p.role.slice(1)} · ${p.email}`,
-    })),
-  ];
-
-  if (taskId) {
-    const t = state.tasks.find(x => x.id === taskId);
-    if (!t) return;
-    document.getElementById('task-modal-title').textContent = 'Edit Task';
-    document.getElementById('task-edit-id').value = t.id;
-    document.getElementById('task-title').value = t.title || '';
-    Combo.mount('task-property-combo', { options: propOptions, value: t.property_id || '', placeholder: 'Type to search properties…' });
-    document.getElementById('task-priority').value = t.priority || 'medium';
-    document.getElementById('task-category').value = t.category || '';
-    document.getElementById('task-due').value = t.due_date || '';
-    Combo.mount('task-assignee-combo', { options: assigneeOptions, value: t.assignee_user_id || '', placeholder: 'Type to assign someone…' });
-    document.getElementById('task-status').value = t.status || 'open';
-    document.getElementById('task-delete-btn').style.display = 'inline-flex';
-  } else {
-    document.getElementById('task-modal-title').textContent = 'New Task';
-    document.getElementById('task-edit-id').value = '';
-    document.getElementById('task-title').value = '';
-    Combo.mount('task-property-combo', { options: propOptions, value: presetProp || state.currentPropertyId || '', placeholder: 'Type to search properties…' });
-    document.getElementById('task-priority').value = 'medium';
-    document.getElementById('task-category').value = '';
-    document.getElementById('task-due').value = new Date(Date.now() + 86400000*3).toISOString().slice(0,10);
-    // Default to me
-    Combo.mount('task-assignee-combo', { options: assigneeOptions, value: state.currentUser?.id || '', placeholder: 'Type to assign someone…' });
-    document.getElementById('task-status').value = 'open';
-    document.getElementById('task-delete-btn').style.display = 'none';
-  }
-  document.getElementById('task-modal').classList.add('show');
+ 
+// ---- TASK PANEL (Asana-style drawer) ----
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
-
-async function saveTask() {
-  const id = document.getElementById('task-edit-id').value;
-  const assigneeUserId = Combo.get('task-assignee-combo')?.getValue() || null;
-  const assigneeProfile = assigneeUserId ? state.profiles.find(p => p.id === assigneeUserId) : null;
-  const payload = {
-    title: document.getElementById('task-title').value.trim(),
-    property_id: Combo.get('task-property-combo')?.getValue() || null,
-    priority: document.getElementById('task-priority').value,
-    category: document.getElementById('task-category').value.trim() || null,
-    due_date: document.getElementById('task-due').value || null,
-    assignee_user_id: assigneeUserId,
-    assignee_initials: assigneeProfile?.initials || null,
-    assignee_name: assigneeProfile?.full_name || null,
-    status: document.getElementById('task-status').value,
+function fmtRelative(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const diff = (Date.now() - d.getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return `${Math.floor(diff/60)}m`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h`;
+  if (diff < 86400*7) return `${Math.floor(diff/86400)}d`;
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+function profileColor(p) { return p?.avatar_color || 'var(--brass)'; }
+function profileInitials(p) {
+  if (!p) return '?';
+  if (p.initials) return p.initials;
+  const src = p.full_name || p.email || '?';
+  return src.split(/\s+/).slice(0,2).map(s => s[0]).join('').toUpperCase();
+}
+ 
+const TaskPanel = (() => {
+  const state_p = {
+    taskId: null,        // null = creating a new task
+    isNew: false,
+    presetProp: null,
+    updates: [],
+    events: [],
+    attachments: [],     // attachments tied to existing updates
+    pending: [],         // pending attachments not yet posted (uploaded but no update_id)
+    mention: { open: false, anchor: null, query: '', activeIdx: 0, candidates: [] },
+    activeTab: 'updates',
   };
-  if (!payload.title) { toast('Title required', { tone: 'error' }); return; }
-  if (payload.status === 'done') payload.completed_at = new Date().toISOString();
-
-  if (id) {
-    markSelfEdit('tasks', id);
-    const { error } = await sb.from('tasks').update(payload).eq('id', id);
-    if (error) { toast('Save failed', { tone: 'error' }); return; }
-    toast('Task updated');
-  } else {
-    const { data, error } = await sb.from('tasks').insert(payload).select().single();
-    if (error) { toast('Could not create task', { tone: 'error' }); return; }
-    markSelfEdit('tasks', data.id);
-    toast('Task created');
+ 
+  function el(id) { return document.getElementById(id); }
+ 
+  function open(taskId = null, presetProp = null) {
+    state_p.taskId = taskId;
+    state_p.isNew = !taskId;
+    state_p.presetProp = presetProp;
+    state_p.updates = [];
+    state_p.events = [];
+    state_p.attachments = [];
+    state_p.pending = [];
+    state_p.activeTab = 'updates';
+ 
+    mountDetails();
+    if (state_p.isNew) {
+      // Defaults for new task
+      el('tp-task-id').value = '';
+      el('tp-title').value = '';
+      el('tp-due').value = new Date(Date.now() + 86400000*3).toISOString().slice(0,10);
+      el('tp-priority').value = 'medium';
+      el('tp-status').value = 'open';
+      el('tp-category').value = '';
+      el('tp-created').textContent = 'Not saved yet';
+      el('tp-status-label').textContent = 'New';
+      el('tp-delete-btn').style.display = 'none';
+      el('tp-complete-btn').style.display = 'none';
+      // Hide composer & non-relevant tabs until the task exists
+      el('tp-composer-wrap').style.display = 'none';
+      document.querySelector('.panel-tab[data-tab="updates"]').style.display = 'none';
+      document.querySelector('.panel-tab[data-tab="activity"]').style.display = 'none';
+      switchTab('details');
+      setTimeout(() => el('tp-title').focus(), 220);
+    } else {
+      const t = state.tasks.find(x => x.id === taskId);
+      if (!t) { toast('Task not found', { tone: 'error' }); return; }
+      el('tp-task-id').value = t.id;
+      el('tp-title').value = t.title || '';
+      el('tp-due').value = t.due_date || '';
+      el('tp-priority').value = t.priority || 'medium';
+      el('tp-status').value = t.status || 'open';
+      el('tp-category').value = t.category || '';
+      el('tp-created').textContent = t.created_at ? new Date(t.created_at).toLocaleString() : '—';
+      el('tp-delete-btn').style.display = 'inline-flex';
+      el('tp-complete-btn').style.display = 'inline-flex';
+      el('tp-composer-wrap').style.display = '';
+      document.querySelector('.panel-tab[data-tab="updates"]').style.display = '';
+      document.querySelector('.panel-tab[data-tab="activity"]').style.display = '';
+      updateStatusPill(t.status);
+      switchTab('updates');
+      loadTaskData(t.id);
+    }
+ 
+    el('tp-pending-attachments').style.display = 'none';
+    el('tp-pending-attachments').innerHTML = '';
+    el('tp-composer').value = '';
+ 
+    el('task-panel-backdrop').classList.add('show');
+    el('task-panel').classList.add('show');
+    el('task-panel').setAttribute('aria-hidden', 'false');
+    setTimeout(() => lucide.createIcons(), 10);
   }
-  closeModal('task-modal');
+ 
+  function close() {
+    el('task-panel').classList.remove('show');
+    el('task-panel-backdrop').classList.remove('show');
+    el('task-panel').setAttribute('aria-hidden', 'true');
+    closeMentionPopover();
+    state_p.taskId = null;
+  }
+ 
+  function mountDetails() {
+    const propOptions = [
+      { value: '', label: 'Portfolio-wide', sub: 'No specific property' },
+      ...state.properties.map(p => ({ value: p.id, label: p.name, sub: `${p.property_type} · ${p.city}, ${p.state}` })),
+    ];
+    const assigneeOptions = [
+      { value: '', label: 'Unassigned' },
+      ...state.profiles.map(p => ({
+        value: p.id,
+        label: p.full_name || p.email,
+        sub: `${(p.role||'').charAt(0).toUpperCase() + (p.role||'').slice(1)} · ${p.email}`,
+      })),
+    ];
+    let propValue, assigneeValue;
+    if (state_p.isNew) {
+      propValue = state_p.presetProp || state.currentPropertyId || '';
+      assigneeValue = state.currentUser?.id || '';
+    } else {
+      const t = state.tasks.find(x => x.id === state_p.taskId);
+      propValue = t?.property_id || '';
+      assigneeValue = t?.assignee_user_id || '';
+    }
+    Combo.mount('tp-property-combo', { options: propOptions, value: propValue, placeholder: 'Type to search properties…', onChange: () => onFieldChange('property_id') });
+    Combo.mount('tp-assignee-combo', { options: assigneeOptions, value: assigneeValue, placeholder: 'Type to assign someone…', onChange: () => onFieldChange('assignee_user_id') });
+  }
+ 
+  function updateStatusPill(status) {
+    const labels = { open: 'Open', in_progress: 'In Progress', done: 'Done' };
+    const pill = el('tp-status-pill');
+    pill.classList.remove('pill-occupied','pill-vacant','pill-scheduled','pill-notice','pill-done');
+    if (status === 'done') pill.classList.add('pill-done');
+    else if (status === 'in_progress') pill.classList.add('pill-notice');
+    else pill.classList.add('pill-scheduled');
+    el('tp-status-label').textContent = labels[status] || status;
+    el('tp-complete-btn').innerHTML = status === 'done'
+      ? '<i data-lucide="rotate-ccw" class="w-4 h-4"></i>'
+      : '<i data-lucide="check" class="w-4 h-4"></i>';
+    lucide.createIcons();
+  }
+ 
+  function switchTab(tab) {
+    state_p.activeTab = tab;
+    document.querySelectorAll('.panel-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+    el('tp-body-updates').style.display  = tab === 'updates'  ? '' : 'none';
+    el('tp-body-details').style.display  = tab === 'details'  ? '' : 'none';
+    el('tp-body-activity').style.display = tab === 'activity' ? '' : 'none';
+  }
+ 
+  // --- field change handling (auto-save for existing tasks; in-memory for new) ---
+  let saveTimer = null;
+  async function onFieldChange(field) {
+    if (state_p.isNew) return; // new task only saves on first post or explicit save
+    const t = state.tasks.find(x => x.id === state_p.taskId);
+    if (!t) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(async () => {
+      const payload = collectPayload();
+      // Only update fields that actually changed
+      const diff = {};
+      ['title','property_id','priority','category','due_date','assignee_user_id','assignee_initials','assignee_name','status'].forEach(k => {
+        if (payload[k] !== t[k] && !(payload[k] == null && t[k] == null)) diff[k] = payload[k];
+      });
+      if (!Object.keys(diff).length) return;
+      if (diff.status === 'done') diff.completed_at = new Date().toISOString();
+      if (diff.status && diff.status !== 'done') diff.completed_at = null;
+      markSelfEdit('tasks', state_p.taskId);
+      const { error } = await sb.from('tasks').update(diff).eq('id', state_p.taskId);
+      if (error) { toast('Save failed', { tone: 'error' }); return; }
+      Object.assign(t, diff);
+      if (diff.status) updateStatusPill(diff.status);
+    }, 350);
+  }
+ 
+  function collectPayload() {
+    const assigneeUserId = Combo.get('tp-assignee-combo')?.getValue() || null;
+    const assigneeProfile = assigneeUserId ? state.profiles.find(p => p.id === assigneeUserId) : null;
+    return {
+      title: el('tp-title').value.trim(),
+      property_id: Combo.get('tp-property-combo')?.getValue() || null,
+      priority: el('tp-priority').value,
+      category: el('tp-category').value.trim() || null,
+      due_date: el('tp-due').value || null,
+      assignee_user_id: assigneeUserId,
+      assignee_initials: assigneeProfile?.initials || null,
+      assignee_name: assigneeProfile?.full_name || null,
+      status: el('tp-status').value,
+    };
+  }
+ 
+  // --- creating a new task happens when the user posts an update or clicks somewhere else ---
+  async function ensureTaskExists() {
+    if (!state_p.isNew) return state_p.taskId;
+    const payload = collectPayload();
+    if (!payload.title) { toast('Title required', { tone: 'error' }); return null; }
+    if (payload.status === 'done') payload.completed_at = new Date().toISOString();
+    const { data, error } = await sb.from('tasks').insert(payload).select().single();
+    if (error) { toast('Could not create task', { tone: 'error' }); return null; }
+    markSelfEdit('tasks', data.id);
+    state_p.taskId = data.id;
+    state_p.isNew = false;
+    el('tp-task-id').value = data.id;
+    el('tp-created').textContent = new Date(data.created_at).toLocaleString();
+    el('tp-delete-btn').style.display = 'inline-flex';
+    el('tp-complete-btn').style.display = 'inline-flex';
+    el('tp-composer-wrap').style.display = '';
+    document.querySelector('.panel-tab[data-tab="updates"]').style.display = '';
+    document.querySelector('.panel-tab[data-tab="activity"]').style.display = '';
+    updateStatusPill(payload.status);
+    toast('Task created');
+    // attach any pending attachments to this task now
+    for (const att of state_p.pending) {
+      await sb.from('task_attachments').update({ task_id: data.id }).eq('id', att.id);
+    }
+    return data.id;
+  }
+ 
+  async function toggleComplete() {
+    const id = await ensureTaskExists();
+    if (!id) return;
+    const t = state.tasks.find(x => x.id === id);
+    const newStatus = t?.status === 'done' ? 'open' : 'done';
+    el('tp-status').value = newStatus;
+    onFieldChange('status');
+    updateStatusPill(newStatus);
+  }
+ 
+  async function del() {
+    if (state_p.isNew) { close(); return; }
+    if (!confirm('Delete this task? All updates and activity will be removed.')) return;
+    markSelfEdit('tasks', state_p.taskId);
+    const { error } = await sb.from('tasks').delete().eq('id', state_p.taskId);
+    if (error) { toast('Delete failed', { tone: 'error' }); return; }
+    toast('Task deleted');
+    close();
+  }
+ 
+  // ---------- DATA LOADING ----------
+  async function loadTaskData(taskId) {
+    const [ups, evs, atts] = await Promise.all([
+      sb.from('task_updates').select('*').eq('task_id', taskId).order('created_at', { ascending: true }),
+      sb.from('task_events').select('*').eq('task_id', taskId).order('created_at', { ascending: true }),
+      sb.from('task_attachments').select('*').eq('task_id', taskId).order('created_at', { ascending: true }),
+    ]);
+    state_p.updates = ups.data || [];
+    state_p.events = evs.data || [];
+    state_p.attachments = atts.data || [];
+    renderUpdates();
+    renderEvents();
+    updateTabCounts();
+  }
+ 
+  function updateTabCounts() {
+    el('tp-tab-updates-count').textContent = state_p.updates.length || '';
+    el('tp-tab-activity-count').textContent = state_p.events.length || '';
+  }
+ 
+  // ---------- RENDER UPDATES ----------
+  function renderUpdates() {
+    const list = el('tp-updates-list');
+    if (!state_p.updates.length) {
+      list.innerHTML = '<div class="empty-state"><i data-lucide="message-square" class="w-7 h-7 mb-2 text-muted"></i><div class="text-[12.5px]">No updates yet. Be the first to post.</div></div>';
+      lucide.createIcons();
+      return;
+    }
+    list.innerHTML = state_p.updates.map(u => {
+      const author = state.profiles.find(p => p.id === u.author_user_id);
+      const name = author?.full_name || author?.email || 'Unknown';
+      const initials = profileInitials(author);
+      const color = profileColor(author);
+      const atts = state_p.attachments.filter(a => a.update_id === u.id);
+      return `
+        <div class="update-item">
+          <div class="update-avatar" style="background:${color}">${escapeHtml(initials)}</div>
+          <div class="update-body">
+            <div class="update-header">
+              <span class="update-author">${escapeHtml(name)}</span>
+              <span class="update-time" title="${escapeHtml(new Date(u.created_at).toLocaleString())}">${fmtRelative(u.created_at)}${u.edited_at ? ' · edited' : ''}</span>
+            </div>
+            <div class="update-text">${renderUpdateBody(u.body, u.mentions || [])}</div>
+            ${atts.length ? `<div class="update-attachments">${atts.map(renderAttachmentChip).join('')}</div>` : ''}
+          </div>
+        </div>`;
+    }).join('');
+    lucide.createIcons();
+  }
+ 
+  function renderUpdateBody(body, mentions) {
+    // Replace @Name occurrences where Name matches a profile in mentions[]
+    let html = escapeHtml(body);
+    const mentionedProfiles = (mentions || [])
+      .map(id => state.profiles.find(p => p.id === id))
+      .filter(Boolean);
+    mentionedProfiles.forEach(p => {
+      const name = p.full_name || p.email;
+      const esc = escapeHtml(name).replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const re = new RegExp('@' + esc, 'g');
+      html = html.replace(re, `<span class="mention">@${escapeHtml(name)}</span>`);
+    });
+    return html;
+  }
+ 
+  function renderAttachmentChip(a) {
+    const icon = (a.mime_type || '').startsWith('image/') ? 'image' : 'paperclip';
+    const sizeKb = a.file_size ? `${(a.file_size/1024).toFixed(a.file_size < 1024*1024 ? 0 : 1)}${a.file_size < 1024*1024 ? 'k' : ''}` : '';
+    const sizeMb = a.file_size && a.file_size >= 1024*1024 ? `${(a.file_size/(1024*1024)).toFixed(1)}M` : sizeKb;
+    const url = sb.storage.from('task-attachments').getPublicUrl(a.storage_path).data.publicUrl;
+    return `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="attachment-chip">
+      <i data-lucide="${icon}" class="w-3.5 h-3.5"></i>
+      <span class="att-name">${escapeHtml(a.file_name)}</span>
+      ${sizeMb ? `<span class="att-size">${sizeMb}</span>` : ''}
+    </a>`;
+  }
+ 
+  // ---------- RENDER EVENTS ----------
+  function renderEvents() {
+    const list = el('tp-events-list');
+    if (!state_p.events.length) {
+      list.innerHTML = '<div class="empty-state"><i data-lucide="activity" class="w-7 h-7 mb-2 text-muted"></i><div class="text-[12.5px]">No activity yet.</div></div>';
+      lucide.createIcons();
+      return;
+    }
+    list.innerHTML = state_p.events.slice().reverse().map(ev => {
+      const actor = ev.actor_name || (state.profiles.find(p => p.id === ev.actor_user_id)?.full_name) || 'Someone';
+      const time = fmtRelative(ev.created_at);
+      let icon = 'circle', text = '';
+      const from = ev.from_value, to = ev.to_value;
+      switch (ev.kind) {
+        case 'created':
+          icon = 'plus-circle';
+          text = `<strong>${escapeHtml(actor)}</strong> created this task`;
+          break;
+        case 'status_change':
+          icon = to === 'done' ? 'check-circle-2' : (to === 'in_progress' ? 'loader' : 'circle');
+          text = `<strong>${escapeHtml(actor)}</strong> changed status from <em>${escapeHtml(from||'—')}</em> to <em>${escapeHtml(to||'—')}</em>`;
+          break;
+        case 'assignee_change':
+          icon = 'user';
+          text = `<strong>${escapeHtml(actor)}</strong> reassigned from <em>${escapeHtml(from||'unassigned')}</em> to <em>${escapeHtml(to||'unassigned')}</em>`;
+          break;
+        case 'priority_change':
+          icon = 'flag';
+          text = `<strong>${escapeHtml(actor)}</strong> set priority to <em>${escapeHtml(to||'—')}</em>`;
+          break;
+        case 'due_change':
+          icon = 'calendar';
+          text = `<strong>${escapeHtml(actor)}</strong> changed due date${from ? ` from <em>${escapeHtml(from)}</em>` : ''}${to ? ` to <em>${escapeHtml(to)}</em>` : ' (cleared)'}`;
+          break;
+        case 'title_change':
+          icon = 'pencil';
+          text = `<strong>${escapeHtml(actor)}</strong> renamed the task`;
+          break;
+      }
+      return `<div class="event-row">
+        <div class="event-icon"><i data-lucide="${icon}" class="w-3 h-3"></i></div>
+        <div class="event-text" style="flex:1">${text}<span class="event-time">${time}</span></div>
+      </div>`;
+    }).join('');
+    lucide.createIcons();
+  }
+ 
+  // ---------- COMPOSER: MENTIONS ----------
+  function setupComposer() {
+    const ta = el('tp-composer');
+    ta.addEventListener('input', onComposerInput);
+    ta.addEventListener('keydown', onComposerKey);
+    el('tp-file-input').addEventListener('change', onFilesPicked);
+    // drag-drop
+    const composer = ta.closest('.composer');
+    composer.addEventListener('dragover', (e) => { e.preventDefault(); composer.style.borderColor = 'var(--brass)'; });
+    composer.addEventListener('dragleave', () => { composer.style.borderColor = ''; });
+    composer.addEventListener('drop', (e) => {
+      e.preventDefault();
+      composer.style.borderColor = '';
+      if (e.dataTransfer.files?.length) onFilesPicked({ target: { files: e.dataTransfer.files } });
+    });
+  }
+ 
+  function onComposerInput(e) {
+    const ta = e.target;
+    const pos = ta.selectionStart;
+    const before = ta.value.slice(0, pos);
+    const m = before.match(/(^|\s)@([\w]*)$/);
+    if (m) {
+      state_p.mention.open = true;
+      state_p.mention.query = m[2].toLowerCase();
+      state_p.mention.anchor = pos - m[2].length - 1; // position of '@'
+      state_p.mention.activeIdx = 0;
+      refreshMentionPopover();
+    } else {
+      closeMentionPopover();
+    }
+  }
+ 
+  function refreshMentionPopover() {
+    const q = state_p.mention.query;
+    const candidates = state.profiles
+      .filter(p => {
+        const name = (p.full_name || p.email || '').toLowerCase();
+        return !q || name.includes(q);
+      })
+      .slice(0, 6);
+    state_p.mention.candidates = candidates;
+    const pop = el('tp-mention-popover');
+    if (!candidates.length) { pop.style.display = 'none'; return; }
+    pop.innerHTML = candidates.map((p, i) => `
+      <div class="mention-row ${i === state_p.mention.activeIdx ? 'active' : ''}" data-idx="${i}">
+        <div class="mention-avatar" style="background:${profileColor(p)}">${escapeHtml(profileInitials(p))}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:500;color:var(--ink)">${escapeHtml(p.full_name || p.email)}</div>
+          <div style="font-size:11px;color:var(--ink-muted)">${escapeHtml(p.email)}</div>
+        </div>
+      </div>`).join('');
+    pop.querySelectorAll('.mention-row').forEach(row => {
+      row.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        selectMention(parseInt(row.dataset.idx));
+      });
+    });
+    // position above the textarea
+    pop.style.display = 'block';
+    pop.style.left = '10px';
+    pop.style.bottom = '60px';
+  }
+ 
+  function closeMentionPopover() {
+    state_p.mention.open = false;
+    el('tp-mention-popover').style.display = 'none';
+  }
+ 
+  function onComposerKey(e) {
+    if (state_p.mention.open) {
+      const n = state_p.mention.candidates.length;
+      if (e.key === 'ArrowDown') { e.preventDefault(); state_p.mention.activeIdx = (state_p.mention.activeIdx + 1) % n; refreshMentionPopover(); return; }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); state_p.mention.activeIdx = (state_p.mention.activeIdx - 1 + n) % n; refreshMentionPopover(); return; }
+      if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); selectMention(state_p.mention.activeIdx); return; }
+      if (e.key === 'Escape') { e.preventDefault(); closeMentionPopover(); return; }
+    } else if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault();
+      postUpdate();
+    }
+  }
+ 
+  function selectMention(idx) {
+    const p = state_p.mention.candidates[idx];
+    if (!p) return;
+    const ta = el('tp-composer');
+    const name = p.full_name || p.email;
+    const before = ta.value.slice(0, state_p.mention.anchor);
+    const after = ta.value.slice(ta.selectionStart);
+    const insert = `@${name} `;
+    ta.value = before + insert + after;
+    const newPos = (before + insert).length;
+    ta.setSelectionRange(newPos, newPos);
+    ta.focus();
+    closeMentionPopover();
+  }
+ 
+  function openMentionMenu() {
+    const ta = el('tp-composer');
+    ta.focus();
+    const pos = ta.selectionStart;
+    const before = ta.value.slice(0, pos);
+    const needsSpace = before.length && !/\s$/.test(before);
+    const insert = (needsSpace ? ' ' : '') + '@';
+    ta.value = before + insert + ta.value.slice(pos);
+    const newPos = pos + insert.length;
+    ta.setSelectionRange(newPos, newPos);
+    onComposerInput({ target: ta });
+  }
+ 
+  // ---------- COMPOSER: ATTACHMENTS ----------
+  function openFilePicker() { el('tp-file-input').click(); }
+ 
+  async function onFilesPicked(e) {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    e.target.value = ''; // reset so the same file can be picked again
+ 
+    const taskId = await ensureTaskExists();
+    if (!taskId) return;
+ 
+    for (const file of files) {
+      const ext = file.name.split('.').pop().toLowerCase();
+      const path = `tasks/${taskId}/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+      // optimistic placeholder
+      const placeholder = { id: 'tmp-' + Math.random().toString(36).slice(2), file_name: file.name, file_size: file.size, mime_type: file.type, _uploading: true };
+      state_p.pending.push(placeholder);
+      renderPending();
+      try {
+        const { error: upErr } = await sb.storage.from('task-attachments').upload(path, file, { cacheControl: '3600', upsert: false, contentType: file.type });
+        if (upErr) throw upErr;
+        const { data: row, error: rowErr } = await sb.from('task_attachments').insert({
+          task_id: taskId,
+          update_id: null, // attached to the *next* posted update; if user posts without text, we still keep it on the task
+          uploaded_by: state.currentUser?.id || null,
+          file_name: file.name,
+          file_size: file.size,
+          mime_type: file.type,
+          storage_path: path,
+        }).select().single();
+        if (rowErr) throw rowErr;
+        // swap placeholder for real
+        const idx = state_p.pending.findIndex(p => p.id === placeholder.id);
+        if (idx >= 0) state_p.pending[idx] = row;
+        renderPending();
+      } catch (err) {
+        console.error(err);
+        toast(`Upload failed: ${file.name}`, { tone: 'error' });
+        state_p.pending = state_p.pending.filter(p => p.id !== placeholder.id);
+        renderPending();
+      }
+    }
+  }
+ 
+  function renderPending() {
+    const wrap = el('tp-pending-attachments');
+    if (!state_p.pending.length) { wrap.style.display = 'none'; wrap.innerHTML = ''; return; }
+    wrap.style.display = 'flex';
+    wrap.innerHTML = state_p.pending.map(a => {
+      if (a._uploading) {
+        return `<div class="attachment-chip" style="opacity:0.6"><i data-lucide="loader-2" class="w-3.5 h-3.5"></i><span class="att-name">${escapeHtml(a.file_name)}</span></div>`;
+      }
+      return `<div class="attachment-chip">
+        <i data-lucide="${(a.mime_type||'').startsWith('image/') ? 'image' : 'paperclip'}" class="w-3.5 h-3.5"></i>
+        <span class="att-name">${escapeHtml(a.file_name)}</span>
+        <i data-lucide="x" class="w-3 h-3" style="cursor:pointer;color:var(--ink-muted)" onclick="TaskPanel.removePending('${a.id}')"></i>
+      </div>`;
+    }).join('');
+    lucide.createIcons();
+  }
+ 
+  async function removePending(id) {
+    const att = state_p.pending.find(a => a.id === id);
+    if (!att) return;
+    state_p.pending = state_p.pending.filter(a => a.id !== id);
+    renderPending();
+    // delete from db + storage (best-effort)
+    if (!String(id).startsWith('tmp-')) {
+      await sb.from('task_attachments').delete().eq('id', id);
+      if (att.storage_path) await sb.storage.from('task-attachments').remove([att.storage_path]);
+    }
+  }
+ 
+  // ---------- POST UPDATE ----------
+  async function postUpdate() {
+    const body = el('tp-composer').value.trim();
+    const pendingAttachments = state_p.pending.filter(a => !a._uploading);
+    if (!body && !pendingAttachments.length) return;
+    const taskId = await ensureTaskExists();
+    if (!taskId) return;
+ 
+    // Extract @mentions whose names match profiles
+    const mentionIds = [];
+    for (const p of state.profiles) {
+      const name = p.full_name || p.email;
+      const esc = name.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+      const re = new RegExp('@' + esc + '(?=$|\\s|[.,!?;:])');
+      if (re.test(body)) mentionIds.push(p.id);
+    }
+ 
+    const { data: upd, error } = await sb.from('task_updates').insert({
+      task_id: taskId,
+      author_user_id: state.currentUser?.id || null,
+      body: body || '(attachment)',
+      mentions: mentionIds,
+    }).select().single();
+    if (error) { toast('Could not post update', { tone: 'error' }); return; }
+ 
+    // Tie pending attachments to this update
+    if (pendingAttachments.length) {
+      const ids = pendingAttachments.map(a => a.id);
+      await sb.from('task_attachments').update({ update_id: upd.id }).in('id', ids);
+      pendingAttachments.forEach(a => a.update_id = upd.id);
+      state_p.attachments.push(...pendingAttachments);
+    }
+    state_p.pending = [];
+    renderPending();
+ 
+    state_p.updates.push(upd);
+    el('tp-composer').value = '';
+    renderUpdates();
+    updateTabCounts();
+    // scroll to bottom of updates
+    const body_el = el('tp-body-updates');
+    body_el.scrollTop = body_el.scrollHeight;
+  }
+ 
+  // ---------- REALTIME HOOKS (called from setupRealtime) ----------
+  function applyRealtime(table, payload) {
+    if (!state_p.taskId) return; // panel not open
+    const { eventType, new: newRec, old: oldRec } = payload;
+    const rec = newRec || oldRec;
+    if (rec.task_id !== state_p.taskId) return;
+ 
+    if (table === 'task_updates') {
+      if (eventType === 'INSERT' && !state_p.updates.some(u => u.id === newRec.id)) {
+        state_p.updates.push(newRec);
+        renderUpdates(); updateTabCounts();
+      } else if (eventType === 'UPDATE') {
+        const i = state_p.updates.findIndex(u => u.id === newRec.id);
+        if (i >= 0) { state_p.updates[i] = newRec; renderUpdates(); }
+      } else if (eventType === 'DELETE') {
+        state_p.updates = state_p.updates.filter(u => u.id !== oldRec.id);
+        renderUpdates(); updateTabCounts();
+      }
+    } else if (table === 'task_events') {
+      if (eventType === 'INSERT' && !state_p.events.some(e => e.id === newRec.id)) {
+        state_p.events.push(newRec);
+        renderEvents(); updateTabCounts();
+      }
+    } else if (table === 'task_attachments') {
+      if (eventType === 'INSERT' && newRec.update_id && !state_p.attachments.some(a => a.id === newRec.id)) {
+        state_p.attachments.push(newRec);
+        renderUpdates();
+      }
+    }
+  }
+ 
+  // bind detail inputs once on first use
+  let bound = false;
+  function ensureBound() {
+    if (bound) return;
+    bound = true;
+    ['tp-title','tp-priority','tp-status','tp-category','tp-due'].forEach(id => {
+      const e = el(id);
+      e.addEventListener('change', () => {
+        if (state_p.isNew && el('tp-title').value.trim()) ensureTaskExists();
+        else onFieldChange(id);
+      });
+      if (id === 'tp-title' || id === 'tp-category') {
+        e.addEventListener('blur', () => {
+          if (state_p.isNew && el('tp-title').value.trim()) ensureTaskExists();
+          else onFieldChange(id);
+        });
+      }
+    });
+    setupComposer();
+    // Esc to close
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && el('task-panel').classList.contains('show') && !state_p.mention.open) close();
+    });
+  }
+ 
+  return { open, close, switchTab, toggleComplete, delete: del, postUpdate, openFilePicker, openMentionMenu, removePending, applyRealtime, ensureBound };
+})();
+ 
+// Back-compat shim — existing onclick="openTaskModal(...)" still works.
+function openTaskModal(taskId = null, presetProp = null) {
+  TaskPanel.ensureBound();
+  TaskPanel.open(taskId, presetProp);
 }
-
-async function deleteTask() {
-  const id = document.getElementById('task-edit-id').value;
-  if (!id || !confirm('Delete this task?')) return;
-  markSelfEdit('tasks', id);
-  const { error } = await sb.from('tasks').delete().eq('id', id);
-  if (error) { toast('Delete failed', { tone: 'error' }); return; }
-  toast('Task deleted');
-  closeModal('task-modal');
-}
-
+ 
 async function toggleTaskDone(taskId, currentStatus) {
   const newStatus = currentStatus === 'done' ? 'open' : 'done';
   markSelfEdit('tasks', taskId);
@@ -2014,7 +2672,8 @@ async function toggleTaskDone(taskId, currentStatus) {
   if (error) toast('Update failed', { tone: 'error' });
   else toast(newStatus === 'done' ? 'Marked complete' : 'Reopened task');
 }
-
+ 
+ 
 // ---- TENANT ----
 function openTenantModal(tenantId = null) {
   if (tenantId) {
@@ -2038,7 +2697,7 @@ function openTenantModal(tenantId = null) {
   }
   document.getElementById('tenant-modal').classList.add('show');
 }
-
+ 
 async function saveTenant() {
   const id = document.getElementById('tenant-edit-id').value;
   const payload = {
@@ -2048,7 +2707,7 @@ async function saveTenant() {
     phone: document.getElementById('tenant-phone').value.trim() || null,
   };
   if (!payload.name) { toast('Name required', { tone: 'error' }); return; }
-
+ 
   if (id) {
     markSelfEdit('tenants', id);
     const { error } = await sb.from('tenants').update(payload).eq('id', id);
@@ -2062,7 +2721,7 @@ async function saveTenant() {
   }
   closeModal('tenant-modal');
 }
-
+ 
 async function deleteTenant() {
   const id = document.getElementById('tenant-edit-id').value;
   if (!id || !confirm('Delete this tenant? Their leases will be affected.')) return;
@@ -2072,7 +2731,7 @@ async function deleteTenant() {
   toast('Tenant deleted');
   closeModal('tenant-modal');
 }
-
+ 
 // ---- SIGN LEASE ----
 function openSignLeaseModal(presetUnitId = null, presetPropertyId = null) {
   const vacantUnits = state.units.filter(u => u.status !== 'occupied' && !state.leases.find(l => l.unit_id === u.id && l.status === 'active'));
@@ -2080,7 +2739,7 @@ function openSignLeaseModal(presetUnitId = null, presetPropertyId = null) {
     toast('No vacant units available', { tone: 'error' });
     return;
   }
-
+ 
   // Build unit options grouped by property
   const unitOptions = vacantUnits.map(u => {
     const prop = state.properties.find(p => p.id === u.property_id);
@@ -2091,7 +2750,7 @@ function openSignLeaseModal(presetUnitId = null, presetPropertyId = null) {
       group: prop?.name || 'Unknown',
     };
   });
-
+ 
   // Decide initial unit value
   let initialUnit = null;
   if (presetUnitId && vacantUnits.find(u => u.id === presetUnitId)) initialUnit = presetUnitId;
@@ -2099,7 +2758,7 @@ function openSignLeaseModal(presetUnitId = null, presetPropertyId = null) {
     const first = vacantUnits.find(u => u.property_id === presetPropertyId);
     if (first) initialUnit = first.id;
   }
-
+ 
   Combo.mount('sl-unit-combo', {
     options: unitOptions,
     value: initialUnit,
@@ -2107,14 +2766,14 @@ function openSignLeaseModal(presetUnitId = null, presetPropertyId = null) {
     placeholder: 'Type a property or unit number…',
     onChange: () => updateSignLeaseSqft(),
   });
-
+ 
   // Build tenant options
   const tenantOptions = state.tenants.slice().sort((a,b) => a.name.localeCompare(b.name)).map(t => ({
     value: t.id,
     label: t.name,
     sub: t.primary_contact || t.email || t.phone || '',
   }));
-
+ 
   Combo.mount('sl-tenant-combo', {
     options: tenantOptions,
     value: null,
@@ -2133,7 +2792,7 @@ function openSignLeaseModal(presetUnitId = null, presetPropertyId = null) {
       document.getElementById('sl-new-tenant-fields').style.display = isNew ? 'block' : 'none';
     },
   });
-
+ 
   // reset extra fields
   ['sl-new-contact','sl-new-phone','sl-new-email','sl-rent'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('sl-new-name').value = '';
@@ -2142,25 +2801,25 @@ function openSignLeaseModal(presetUnitId = null, presetPropertyId = null) {
   document.getElementById('sl-term').value = '12';
   applySignLeaseTerm();
   updateSignLeaseSqft();
-
+ 
   document.getElementById('signlease-modal').classList.add('show');
   lucide.createIcons();
 }
-
+ 
 // kept for backward-compat; the combobox onChange now drives this
 function updateSignLeaseTenant() {
   const val = Combo.get('sl-tenant-combo')?.getValue();
   const isNew = val === '__new__';
   document.getElementById('sl-new-tenant-fields').style.display = isNew ? 'block' : 'none';
 }
-
+ 
 function updateSignLeaseSqft() {
   const unitId = Combo.get('sl-unit-combo')?.getValue();
   const unit = state.units.find(u => u.id === unitId);
   const prop = unit ? state.properties.find(p => p.id === unit.property_id) : null;
   document.getElementById('sl-unit-info').textContent = unit ? `${unit.sqft?.toLocaleString() || '—'} sqft · ${prop?.address_line || ''}` : '';
 }
-
+ 
 function applySignLeaseTerm() {
   const months = parseInt(document.getElementById('sl-term').value);
   if (!months) return;
@@ -2171,29 +2830,29 @@ function applySignLeaseTerm() {
   d.setDate(d.getDate() - 1); // end the day before the anniversary
   document.getElementById('sl-end').value = d.toISOString().slice(0,10);
 }
-
+ 
 document.addEventListener('change', e => {
   if (e.target.id === 'sl-start') applySignLeaseTerm();
 });
-
+ 
 async function signLease() {
   const unitId = Combo.get('sl-unit-combo')?.getValue();
   const tenantSelectVal = Combo.get('sl-tenant-combo')?.getValue();
   const start = document.getElementById('sl-start').value;
   const end = document.getElementById('sl-end').value;
   const rent = parseFloat(document.getElementById('sl-rent').value) || 0;
-
+ 
   if (!unitId) { toast('Select a unit', { tone: 'error' }); return; }
   if (!tenantSelectVal) { toast('Select or create a tenant', { tone: 'error' }); return; }
   if (!start || !end) { toast('Start and end dates required', { tone: 'error' }); return; }
   if (rent <= 0) { toast('Monthly rent required', { tone: 'error' }); return; }
   if (new Date(end) <= new Date(start)) { toast('End date must be after start', { tone: 'error' }); return; }
-
+ 
   const unit = state.units.find(u => u.id === unitId);
   if (!unit) { toast('Unit not found', { tone: 'error' }); return; }
-
+ 
   let tenantId = tenantSelectVal;
-
+ 
   // create new tenant if needed
   if (tenantSelectVal === '__new__') {
     const name = document.getElementById('sl-new-name').value.trim();
@@ -2209,7 +2868,7 @@ async function signLease() {
     markSelfEdit('tenants', data.id);
     tenantId = data.id;
   }
-
+ 
   // create lease
   const leasePayload = {
     tenant_id: tenantId,
@@ -2223,11 +2882,11 @@ async function signLease() {
   const { data: lease, error: leaseErr } = await sb.from('leases').insert(leasePayload).select().single();
   if (leaseErr) { toast('Could not create lease', { tone: 'error' }); console.error(leaseErr); return; }
   markSelfEdit('leases', lease.id);
-
+ 
   // mark unit occupied
   markSelfEdit('units', unitId);
   await sb.from('units').update({ status: 'occupied' }).eq('id', unitId);
-
+ 
   // activity log
   const tenant = state.tenants.find(t => t.id === tenantId) || { name: document.getElementById('sl-new-name').value.trim() };
   const prop = state.properties.find(p => p.id === unit.property_id);
@@ -2238,11 +2897,11 @@ async function signLease() {
     tone: 'sage',
     message: `Lease signed: ${tenant.name} at ${prop?.name || ''} Unit ${unit.unit_number} · ${fmtMoney(rent)}/mo`,
   });
-
+ 
   toast(`Lease signed with ${tenant.name}`);
   closeModal('signlease-modal');
 }
-
+ 
 // ---- LEASE ----
 function openLeaseModal(leaseId) {
   const l = state.leases.find(x => x.id === leaseId);
@@ -2264,7 +2923,7 @@ function openLeaseModal(leaseId) {
   document.getElementById('lease-status').value = l.status || 'active';
   document.getElementById('lease-modal').classList.add('show');
 }
-
+ 
 async function saveLease() {
   const id = document.getElementById('lease-edit-id').value;
   const unitId = document.getElementById('lease-unit').value;
@@ -2284,7 +2943,7 @@ async function saveLease() {
   toast('Lease updated');
   closeModal('lease-modal');
 }
-
+ 
 // ---- ACCESS CODE ----
 function openCodeModal(codeId = null, propertyId = null) {
   if (codeId) {
@@ -2310,7 +2969,7 @@ function openCodeModal(codeId = null, propertyId = null) {
   }
   document.getElementById('code-modal').classList.add('show');
 }
-
+ 
 async function saveCode() {
   const id = document.getElementById('code-edit-id').value;
   const payload = {
@@ -2321,7 +2980,7 @@ async function saveCode() {
     last_rotated: document.getElementById('code-rotated').value || null,
   };
   if (!payload.label || !payload.code_value) { toast('Label and code required', { tone: 'error' }); return; }
-
+ 
   if (id) {
     markSelfEdit('access_codes', id);
     const { error } = await sb.from('access_codes').update(payload).eq('id', id);
@@ -2335,7 +2994,7 @@ async function saveCode() {
   }
   closeModal('code-modal');
 }
-
+ 
 async function deleteCode() {
   const id = document.getElementById('code-edit-id').value;
   if (!id || !confirm('Delete this access code?')) return;
@@ -2345,12 +3004,12 @@ async function deleteCode() {
   toast('Code deleted');
   closeModal('code-modal');
 }
-
+ 
 // ---- PROPERTY (multi-step create/edit) ----
 const propertyDraft = { units: [], imageUrl: null, uploadedPath: null };
 let propertyStep = 1;
 let propertyEditingId = null;
-
+ 
 function updatePropSlug() {
   // only update slug preview in CREATE mode; editing shouldn't change slugs
   if (propertyEditingId) return;
@@ -2359,17 +3018,17 @@ function updatePropSlug() {
   document.getElementById('prop-slug-preview').textContent = slug || '—';
   propertyDraft.slug = slug;
 }
-
+ 
 function openPropertyModal(editId = null) {
   propertyEditingId = editId;
   propertyStep = 1;
   propertyDraft.imageUrl = null;
   propertyDraft.uploadedPath = null;
-
+ 
   // Defensive reset: always clear any stale button state from previous attempts
   const createBtn = document.getElementById('prop-create-btn');
   createBtn.disabled = false;
-
+ 
   if (editId) {
     const p = state.properties.find(x => x.id === editId);
     if (!p) return;
@@ -2409,14 +3068,14 @@ function openPropertyModal(editId = null) {
     document.getElementById('prop-archive-btn').style.display = 'none';
     document.getElementById('prop-create-btn').innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i> Create Property';
   }
-
+ 
   renderUnitRows();
   refreshImagePreview();
   showPropertyStep(1);
   document.getElementById('property-modal').classList.add('show');
   lucide.createIcons();
 }
-
+ 
 function refreshImagePreview() {
   const preview = document.getElementById('image-drop-preview');
   const empty = document.getElementById('image-drop-empty');
@@ -2435,20 +3094,20 @@ function refreshImagePreview() {
     zone.classList.remove('has-image');
   }
 }
-
+ 
 function clearImage() {
   propertyDraft.imageUrl = null;
   propertyDraft.uploadedPath = null;
   document.getElementById('prop-image-file').value = '';
   refreshImagePreview();
 }
-
+ 
 async function handleImageFile(file) {
   if (!file) return;
   if (file.size > 10 * 1024 * 1024) { toast('Image too large (max 10MB)', { tone: 'error' }); return; }
   const allowed = ['image/jpeg','image/png','image/webp','image/gif'];
   if (!allowed.includes(file.type)) { toast('Use JPG, PNG, WebP, or GIF', { tone: 'error' }); return; }
-
+ 
   const empty = document.getElementById('image-drop-empty');
   const preview = document.getElementById('image-drop-preview');
   const uploading = document.getElementById('image-drop-uploading');
@@ -2456,11 +3115,11 @@ async function handleImageFile(file) {
   preview.style.display = 'none';
   uploading.style.display = 'flex';
   lucide.createIcons();
-
+ 
   // unique path
   const ext = file.name.split('.').pop().toLowerCase();
   const path = `hero/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
-
+ 
   try {
     const { error: uploadErr } = await sb.storage.from('property-images').upload(path, file, {
       cacheControl: '3600',
@@ -2481,7 +3140,7 @@ async function handleImageFile(file) {
     toast('Upload failed', { tone: 'error' });
   }
 }
-
+ 
 function showPropertyStep(n) {
   propertyStep = n;
   for (let i = 1; i <= 3; i++) {
@@ -2500,7 +3159,7 @@ function showPropertyStep(n) {
   if (n === 3) renderPropertyReview();
   lucide.createIcons();
 }
-
+ 
 function propertyStepNext() {
   if (propertyStep === 1) {
     const name = document.getElementById('prop-name').value.trim();
@@ -2518,11 +3177,11 @@ function propertyStepNext() {
   }
   if (propertyStep < 3) showPropertyStep(propertyStep + 1);
 }
-
+ 
 function propertyStepPrev() {
   if (propertyStep > 1) showPropertyStep(propertyStep - 1);
 }
-
+ 
 function renderUnitRows() {
   const container = document.getElementById('unit-rows');
   container.innerHTML = propertyDraft.units.map((u, i) => `
@@ -2541,30 +3200,30 @@ function renderUnitRows() {
   document.getElementById('unit-total-sqft').textContent = propertyDraft.units.reduce((s,u) => s + (parseInt(u.sqft)||0), 0).toLocaleString();
   lucide.createIcons();
 }
-
+ 
 function updateUnit(i, key, val) {
   propertyDraft.units[i][key] = val;
   if (key === 'sqft') document.getElementById('unit-total-sqft').textContent = propertyDraft.units.reduce((s,u) => s + (parseInt(u.sqft)||0), 0).toLocaleString();
 }
-
+ 
 function addUnitRow() {
   const next = propertyDraft.units.length + 1;
   propertyDraft.units.push({ unit_number: String(next), sqft: 0, status: 'vacant' });
   renderUnitRows();
 }
-
+ 
 function addBulkUnits(n) {
   const start = propertyDraft.units.length;
   for (let i = 1; i <= n; i++) propertyDraft.units.push({ unit_number: String(start + i), sqft: 0, status: 'vacant' });
   renderUnitRows();
 }
-
+ 
 function removeUnit(i) {
   if (propertyDraft.units.length <= 1) return;
   propertyDraft.units.splice(i, 1);
   renderUnitRows();
 }
-
+ 
 // drag & drop image
 document.addEventListener('DOMContentLoaded', () => {
   const zone = document.getElementById('image-drop-zone');
@@ -2575,7 +3234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.dataTransfer.files && e.dataTransfer.files[0]) handleImageFile(e.dataTransfer.files[0]);
   });
 });
-
+ 
 function renderPropertyReview() {
   const name = document.getElementById('prop-name').value.trim();
   const type = document.getElementById('prop-type').value;
@@ -2589,7 +3248,7 @@ function renderPropertyReview() {
   const unitSqftTotal = propertyDraft.units.reduce((s,u) => s + (parseInt(u.sqft)||0), 0);
   const occupiedCount = propertyDraft.units.filter(u => u.status === 'occupied').length;
   const hasImage = !!propertyDraft.imageUrl;
-
+ 
   document.getElementById('property-review').innerHTML = `
     <div class="review-row"><div class="review-label">Name</div><div class="review-val">${name || '<span class="text-muted italic">missing</span>'}</div></div>
     <div class="review-row"><div class="review-label">Type</div><div class="review-val">${type}</div></div>
@@ -2601,11 +3260,11 @@ function renderPropertyReview() {
     <div class="review-row"><div class="review-label">Image</div><div class="review-val">${hasImage ? '<span class="text-sage">✓ Uploaded</span>' : '<span class="text-muted italic">none</span>'}</div></div>
   `;
 }
-
+ 
 async function saveProperty() {
   const name = document.getElementById('prop-name').value.trim();
   if (!name) { toast('Property name required', { tone: 'error' }); showPropertyStep(1); return; }
-
+ 
   const propertyPayload = {
     name,
     property_type: document.getElementById('prop-type').value,
@@ -2622,12 +3281,12 @@ async function saveProperty() {
     zoning: document.getElementById('prop-zoning').value.trim() || null,
     lot_acres: parseFloat(document.getElementById('prop-acres').value) || null,
   };
-
+ 
   // slug only set on create
   if (!propertyEditingId) {
     propertyPayload.slug = propertyDraft.slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   }
-
+ 
   const createBtn = document.getElementById('prop-create-btn');
   const isEdit = !!propertyEditingId;
   const restoreBtn = () => {
@@ -2637,11 +3296,11 @@ async function saveProperty() {
       : '<i data-lucide="check" class="w-3.5 h-3.5"></i> Create Property';
     lucide.createIcons();
   };
-
+ 
   createBtn.disabled = true;
   createBtn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> ${isEdit ? 'Saving…' : 'Creating…'}`;
   lucide.createIcons();
-
+ 
   let resultProp;
   try {
     if (isEdit) {
@@ -2649,7 +3308,7 @@ async function saveProperty() {
       const { data, error } = await sb.from('properties').update(propertyPayload).eq('id', propertyEditingId).select().single();
       if (error) { toast('Save failed: ' + (error.message || ''), { tone: 'error' }); restoreBtn(); return; }
       resultProp = data;
-
+ 
       // update units: existing ones get UPDATE, new ones get INSERT
       const existingUnitIds = state.units.filter(u => u.property_id === propertyEditingId).map(u => u.id);
       const draftUnitIds = propertyDraft.units.filter(u => u.id).map(u => u.id);
@@ -2661,7 +3320,7 @@ async function saveProperty() {
         status: u.status || 'vacant',
       }));
       const toUpdate = propertyDraft.units.filter(u => u.id);
-
+ 
       if (toDelete.length) {
         const safeToDelete = toDelete.filter(id => !state.leases.find(l => l.unit_id === id && l.status === 'active'));
         const blockedCount = toDelete.length - safeToDelete.length;
@@ -2689,7 +3348,7 @@ async function saveProperty() {
       }
       resultProp = data;
       markSelfEdit('properties', resultProp.id);
-
+ 
       if (propertyDraft.units.length > 0) {
         const unitPayloads = propertyDraft.units.map(u => ({
           property_id: resultProp.id,
@@ -2710,7 +3369,7 @@ async function saveProperty() {
       if (logErr) console.error('activity log:', logErr);
       toast(`${resultProp.name} created`);
     }
-
+ 
     closeModal('property-modal');
     restoreBtn(); // reset for next time before showing the new property
     if (!isEdit && resultProp) setTimeout(() => showProperty(resultProp.id), 300);
@@ -2720,13 +3379,13 @@ async function saveProperty() {
     restoreBtn();
   }
 }
-
+ 
 async function archiveProperty() {
   const id = propertyEditingId;
   if (!id) return;
   const p = state.properties.find(x => x.id === id);
   if (!confirm(`Archive ${p?.name || 'this property'}? It will be hidden from the portfolio but all history is preserved. You can restore it later.`)) return;
-
+ 
   markSelfEdit('properties', id);
   const { error } = await sb.from('properties').update({ archived_at: new Date().toISOString() }).eq('id', id);
   if (error) { toast('Archive failed', { tone: 'error' }); return; }
@@ -2741,7 +3400,7 @@ async function archiveProperty() {
   closeModal('property-modal');
   navTo('portfolio');
 }
-
+ 
 // ============== NAV ==============
 function toggleReveal(btn) {
   const container = btn.closest('.card').querySelector('.code-container');
@@ -2771,18 +3430,18 @@ function showProperty(id) {
   renderPropertyDetail(id);
   window.scrollTo(0, 0);
 }
-
+ 
 // close modal on backdrop click
 document.querySelectorAll('.modal-backdrop').forEach(m => {
   m.addEventListener('click', e => { if (e.target === m) m.classList.remove('show'); });
 });
-
+ 
 // ============== AUTH ==============
 state.currentUser = null;     // auth.users record (from session)
 state.currentProfile = null;  // public.profiles record (display info + role)
 state.profiles = [];          // all profiles (for assignee picker)
 state.invitations = [];       // pending invites (admin only)
-
+ 
 function showAuthScreen() {
   document.getElementById('auth-screen').style.display = 'block';
   document.getElementById('app-shell').style.display = 'none';
@@ -2791,7 +3450,7 @@ function showApp() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-shell').style.display = 'block';
 }
-
+ 
 function toggleAuthMode(mode) {
   document.getElementById('auth-signin-form').style.display = mode === 'signin' ? 'block' : 'none';
   document.getElementById('auth-signup-form').style.display = mode === 'signup' ? 'block' : 'none';
@@ -2800,13 +3459,13 @@ function toggleAuthMode(mode) {
     document.getElementById('signup-email').value = document.getElementById('auth-email').value;
   }
 }
-
+ 
 function showAuthError(msg) {
   const el = document.getElementById('auth-error');
   el.textContent = msg;
   el.style.display = 'block';
 }
-
+ 
 async function signIn() {
   const email = document.getElementById('auth-email').value.trim();
   const password = document.getElementById('auth-password').value;
@@ -2814,7 +3473,7 @@ async function signIn() {
   const btn = document.getElementById('auth-signin-btn');
   btn.disabled = true; btn.textContent = 'Signing in…';
   document.getElementById('auth-error').style.display = 'none';
-
+ 
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) {
     showAuthError(error.message || 'Sign-in failed');
@@ -2823,7 +3482,7 @@ async function signIn() {
   }
   // onAuthStateChange will pick this up and boot the app
 }
-
+ 
 async function signUp() {
   const email = document.getElementById('signup-email').value.trim();
   const password = document.getElementById('signup-password').value;
@@ -2832,7 +3491,7 @@ async function signUp() {
   const btn = document.getElementById('auth-signup-btn');
   btn.disabled = true; btn.textContent = 'Creating account…';
   document.getElementById('auth-error').style.display = 'none';
-
+ 
   const { data, error } = await sb.auth.signUp({ email, password });
   if (error) {
     const msg = (error.message || '').toLowerCase().includes('not invited') || (error.message || '').toLowerCase().includes('not permitted')
@@ -2852,15 +3511,15 @@ async function signUp() {
     setTimeout(() => toggleAuthMode('signin'), 100);
   }
 }
-
+ 
 async function signOut() {
   if (!confirm('Sign out?')) return;
   await sb.auth.signOut();
   // onAuthStateChange will clear state
 }
-
+ 
 function toggleUserMenu() { /* placeholder for future expanded menu */ }
-
+ 
 async function loadProfile() {
   if (!state.currentUser) return;
   try {
@@ -2872,7 +3531,7 @@ async function loadProfile() {
     console.error('loadProfile failed:', e);
   }
 }
-
+ 
 async function loadProfilesAndInvites() {
   try {
     const [profs, invs] = await Promise.all([
@@ -2889,7 +3548,7 @@ async function loadProfilesAndInvites() {
     state.invitations = state.invitations || [];
   }
 }
-
+ 
 function renderUserChip() {
   const p = state.currentProfile;
   if (!p) return;
@@ -2900,11 +3559,11 @@ function renderUserChip() {
   document.getElementById('sidebar-user-name').textContent = name;
   document.getElementById('sidebar-user-role').textContent = `${p.role.charAt(0).toUpperCase() + p.role.slice(1)} · DMS`;
 }
-
+ 
 function renderTeam() {
   const subtitle = `${state.profiles.length} member${state.profiles.length === 1 ? '' : 's'} · ${state.invitations.length} pending`;
   document.getElementById('team-subtitle').textContent = subtitle;
-
+ 
   document.getElementById('team-members-table').innerHTML = state.profiles.length === 0
     ? '<tr><td colspan="4" class="text-center text-muted py-8 italic">No members yet</td></tr>'
     : state.profiles.map(p => {
@@ -2921,7 +3580,7 @@ function renderTeam() {
           <td class="text-[12px]">${p.created_at ? new Date(p.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '—'}</td>
         </tr>`;
       }).join('');
-
+ 
   document.getElementById('team-invites-table').innerHTML = state.invitations.length === 0
     ? '<tr><td colspan="4" class="text-center text-muted py-8 italic">No pending invitations</td></tr>'
     : state.invitations.map(i => {
@@ -2936,7 +3595,7 @@ function renderTeam() {
       }).join('');
   lucide.createIcons();
 }
-
+ 
 function openInviteModal() {
   if (state.currentProfile?.role !== 'admin') { toast('Only admins can invite people', { tone: 'error' }); return; }
   document.getElementById('invite-email').value = '';
@@ -2944,7 +3603,7 @@ function openInviteModal() {
   document.getElementById('invite-role').value = 'admin';
   document.getElementById('invite-modal').classList.add('show');
 }
-
+ 
 async function sendInvite() {
   const email = document.getElementById('invite-email').value.trim().toLowerCase();
   const fullName = document.getElementById('invite-name').value.trim();
@@ -2952,7 +3611,7 @@ async function sendInvite() {
   if (!email) { toast('Email required', { tone: 'error' }); return; }
   if (state.profiles.find(p => p.email.toLowerCase() === email)) { toast('That email already has an account', { tone: 'error' }); return; }
   if (state.invitations.find(i => i.email.toLowerCase() === email)) { toast('That email already has a pending invitation', { tone: 'error' }); return; }
-
+ 
   const { error } = await sb.from('invitations').insert({
     email,
     full_name: fullName || null,
@@ -2964,7 +3623,7 @@ async function sendInvite() {
   closeModal('invite-modal');
   // they'll need to be told manually; future improvement: email them
 }
-
+ 
 async function revokeInvite(id) {
   if (state.currentProfile?.role !== 'admin') { toast('Only admins can revoke invitations', { tone: 'error' }); return; }
   if (!confirm('Revoke this invitation?')) return;
@@ -2972,7 +3631,7 @@ async function revokeInvite(id) {
   if (error) { toast('Revoke failed', { tone: 'error' }); return; }
   toast('Invitation revoked');
 }
-
+ 
 // ============== INIT ==============
 async function bootApp() {
   try {
@@ -2997,7 +3656,7 @@ async function bootApp() {
     showAuthError('Could not load workspace: ' + (e.message || 'unknown error') + '. Please sign in again.');
   }
 }
-
+ 
 function teardownApp() {
   state.currentUser = null;
   state.currentProfile = null;
@@ -3009,7 +3668,7 @@ function teardownApp() {
   try { sb.removeAllChannels(); } catch (e) {}
   showAuthScreen();
 }
-
+ 
 function setupRealtimeAuthExtras() {
   // listen for profile and invitation changes
   sb.channel('dms-auth')
@@ -3023,7 +3682,7 @@ function setupRealtimeAuthExtras() {
     })
     .subscribe();
 }
-
+ 
 // Auth state change listener — fires on sign-in, sign-out, and page load if there's an existing session
 sb.auth.onAuthStateChange(async (event, session) => {
   if (session?.user) {
@@ -3036,7 +3695,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
     else showAuthScreen();
   }
 });
-
+ 
 // Allow Enter to submit on auth forms
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter') return;
@@ -3046,7 +3705,7 @@ document.addEventListener('keydown', e => {
     signUp();
   }
 });
-
+ 
 // Initial check: if there's already a session, onAuthStateChange will fire. Otherwise show login.
 (async function init() {
   const { data: { session } } = await sb.auth.getSession();
@@ -3056,3 +3715,4 @@ document.addEventListener('keydown', e => {
 </script>
 </body>
 </html>
+ 
